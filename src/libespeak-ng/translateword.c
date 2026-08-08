@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2005 to 2014 by Jonathan Duddington
  * email: jonsd@users.sourceforge.net
@@ -730,8 +729,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, int wtab_re
 			ChangeWordStress(tr, word_phonemes, 3);
 	}
 
-	// dictionary flags for this word give a clue about which alternative pronunciations of
-	// following words to use.
+	// dictionary flags for this word give a clue about which alternative pronunciations of	// following words to use.
 	if (end_type1 & SUFX_F) {
 		// expect a verb form, with or without -s suffix
 		tr->expect_verb = 2;
@@ -1102,20 +1100,15 @@ static int TranslateLetter(Translator *tr, char *word, char *phonemes, int contr
 			speak_letter_number = 0;
 		}
 
+		// اگر کاراکتر بریل باشد، هیچ صدایی تولید نکن
+		if (al_offset == 0x2800) {
+			speak_letter_number = 0;
+		}
+
 		if (speak_letter_number) {
 			char *p2;
-			if (al_offset == 0x2800) {
-				// braille dots symbol, list the numbered dots
-				p2 = hexbuf;
-				for (int ix = 0; ix < 8; ix++) {
-					if (letter & (1 << ix))
-						*p2++ = '1'+ix;
-				}
-				*p2 = 0;
-			} else {
-				// speak the hexadecimal number of the character code
-				sprintf(hexbuf, "%x", letter);
-			}
+			// speak the hexadecimal number of the character code
+			sprintf(hexbuf, "%x", letter);
 
 			char *pbuf;
 			pbuf = ph_buf;

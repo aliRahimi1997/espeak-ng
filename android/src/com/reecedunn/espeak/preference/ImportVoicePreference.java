@@ -47,8 +47,8 @@ public class ImportVoicePreference extends DialogPreference {
     private static final int REQUEST_IMPORT_DICT = 1001;
     private File mRoot;
     private Spinner mDictionaries;
-    private Uri mSelectedFileUri;
     private Context mContext;
+    private boolean mFilePickerOpened = false;
 
     public ImportVoicePreference(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
@@ -98,28 +98,49 @@ public class ImportVoicePreference extends DialogPreference {
     @Override
     public void onClick(DialogInterface dialog, int which) {
         if (which == DialogInterface.BUTTON_POSITIVE) {
-            File selectedFile = (File) mDictionaries.getSelectedItem();
-            if (selectedFile != null && selectedFile.exists()) {
-                importFile(selectedFile);
-                super.onClick(dialog, which);
-                return;
-            }
+            mFilePickerOpened = true;
+            Toast.makeText(getContext(), "Opening file picker...", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Opening file picker");
             
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("*/*");
-            ((Activity) getContext()).startActivityForResult(intent, REQUEST_IMPORT_DICT);
+            try {
+                ((Activity) getContext()).startActivityForResult(intent, REQUEST_IMPORT_DICT);
+            } catch (Exception e) {
+                Log.e(TAG, "Error opening file picker", e);
+                Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+            return;
         }
         super.onClick(dialog, which);
     }
 
     public void handleActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_IMPORT_DICT && resultCode == Activity.RESULT_OK) {
-            if (data != null) {
-                Uri uri = data.getData();
-                if (uri != null) {
-                    importFile(uri);
+        Log.d(TAG, "handleActivityResult: requestCode=" + requestCode + ", resultCode=" + resultCode);
+        Toast.makeText(getContext(), "Activity result: " + requestCode + ", " + resultCode, Toast.LENGTH_SHORT).show();
+        
+        if (requestCode == REQUEST_IMPORT_DICT) {
+            mFilePickerOpened = false;
+            
+            if (resultCode == Activity.RESULT_OK) {
+                Log.d(TAG, "RESULT_OK");
+                Toast.makeText(getContext(), "File selected, importing...", Toast.LENGTH_SHORT).show();
+                
+                if (data != null) {
+                    Uri uri = data.getData();
+                    if (uri != null) {
+                        Log.d(TAG, "URI: " + uri.toString());
+                        Toast.makeText(getContext(), "URI: " + uri.getLastPathSegment(), Toast.LENGTH_LONG).show();
+                        importFile(uri);
+                    } else {
+                        Toast.makeText(getContext(), "ERROR: URI is null", Toast.LENGTH_LONG).show();
+                    }
+                } else {
+                    Toast.makeText(getContext(), "ERROR: Data is null", Toast.LENGTH_LONG).show();
                 }
+            } else {
+                Toast.makeText(getContext(), "File selection cancelled", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -137,18 +158,31 @@ public class ImportVoicePreference extends DialogPreference {
                         return "ERROR: File does not exist: " + file.getAbsolutePath();
                     }
                     
-                    File destination = new File(CheckVoiceData.getDataPath(getContext()), file.getName());
+                    File dataPath = CheckVoiceData.getDataPath(getContext());
+                    if (dataPath == null) {
+                        return "ERROR: Data path is null";
+                    }
+                    
+                    Toast.makeText(getContext(), "Data path: " + dataPath.getAbsolutePath(), Toast.LENGTH_LONG).show();
+                    
+                    if (!dataPath.exists()) {
+                        if (!dataPath.mkdirs()) {
+                            return "ERROR: Failed to create data directory: " + dataPath.getAbsolutePath();
+                        }
+                    }
+                    
+                    File destination = new File(dataPath, file.getName());
                     
                     Log.d(TAG, "Source: " + file.getAbsolutePath());
                     Log.d(TAG, "Destination: " + destination.getAbsolutePath());
+                    Toast.makeText(getContext(), "Copying to: " + destination.getAbsolutePath(), Toast.LENGTH_LONG).show();
                     
                     if (destination.exists()) {
                         Log.d(TAG, "Destination file exists, deleting...");
-                        if (destination.delete()) {
-                            Log.d(TAG, "Old file deleted successfully");
-                        } else {
+                        if (!destination.delete()) {
                             return "ERROR: Failed to delete old file: " + destination.getAbsolutePath();
                         }
+                        Log.d(TAG, "Old file deleted successfully");
                     }
                     
                     byte[] data = FileUtils.readBinary(file);
@@ -172,7 +206,7 @@ public class ImportVoicePreference extends DialogPreference {
             @Override
             protected void onPostExecute(String result) {
                 Log.d(TAG, "Import result: " + result);
-                
+                Toast.makeText(getContext(), "Result: " + result, Toast.LENGTH_LONG).show();
                 showResultDialog(result);
                 
                 if (result.startsWith("SUCCESS")) {
@@ -205,6 +239,7 @@ public class ImportVoicePreference extends DialogPreference {
                     }
                     
                     Log.d(TAG, "Importing from URI: " + uri.toString());
+                    Toast.makeText(getContext(), "Importing: " + uri.getLastPathSegment(), Toast.LENGTH_LONG).show();
                     
                     String fileName = uri.getLastPathSegment();
                     if (fileName == null) {
@@ -220,6 +255,8 @@ public class ImportVoicePreference extends DialogPreference {
                         return "ERROR: Data path is null";
                     }
                     
+                    Toast.makeText(getContext(), "Data path: " + dataPath.getAbsolutePath(), Toast.LENGTH_LONG).show();
+                    
                     if (!dataPath.exists()) {
                         if (!dataPath.mkdirs()) {
                             return "ERROR: Failed to create data directory: " + dataPath.getAbsolutePath();
@@ -229,17 +266,22 @@ public class ImportVoicePreference extends DialogPreference {
                     File destination = new File(dataPath, fileName);
                     
                     Log.d(TAG, "Destination: " + destination.getAbsolutePath());
+                    Toast.makeText(getContext(), "Copying to: " + destination.getAbsolutePath(), Toast.LENGTH_LONG).show();
                     
                     if (destination.exists()) {
                         Log.d(TAG, "Destination file exists, deleting...");
-                        if (destination.delete()) {
-                            Log.d(TAG, "Old file deleted successfully");
-                        } else {
+                        if (!destination.delete()) {
                             return "ERROR: Failed to delete old file: " + destination.getAbsolutePath();
                         }
+                        Log.d(TAG, "Old file deleted successfully");
                     }
                     
-                    byte[] data = FileUtils.readBinary(getContext().getContentResolver().openInputStream(uri));
+                    java.io.InputStream inputStream = getContext().getContentResolver().openInputStream(uri);
+                    if (inputStream == null) {
+                        return "ERROR: Cannot open input stream for URI";
+                    }
+                    
+                    byte[] data = FileUtils.readBinary(inputStream);
                     FileUtils.write(destination, data);
                     
                     if (destination.exists()) {
@@ -263,7 +305,7 @@ public class ImportVoicePreference extends DialogPreference {
             @Override
             protected void onPostExecute(String result) {
                 Log.d(TAG, "Import result: " + result);
-                
+                Toast.makeText(getContext(), "Result: " + result, Toast.LENGTH_LONG).show();
                 showResultDialog(result);
                 
                 if (result.startsWith("SUCCESS")) {
@@ -289,7 +331,7 @@ public class ImportVoicePreference extends DialogPreference {
     private void showResultDialog(String message) {
         try {
             AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-            builder.setTitle(message.startsWith("SUCCESS") ? "Import Successful" : "Import Failed");
+            builder.setTitle(message.startsWith("SUCCESS") ? "✓ Import Successful" : "✗ Import Failed");
             builder.setMessage(message);
             builder.setPositiveButton("OK", (dialog, which) -> dialog.dismiss());
             builder.setCancelable(true);

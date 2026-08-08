@@ -72,7 +72,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
             PreferenceManager preferenceManager = getPreferenceManager();
             preferenceManager.setStorageDeviceProtected ();
         }
-        // Migrate old eyes-free settings to the new settings:
 
         storageContext = EspeakApp.getStorageContext();
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(storageContext);
@@ -80,7 +79,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
 
         String pitch = prefs.getString(VoiceSettings.PREF_PITCH, null);
         if (pitch == null) {
-            // Try the old eyes-free setting:
             pitch = prefs.getString(VoiceSettings.PREF_DEFAULT_PITCH, "100");
             int pitchValue = Integer.parseInt(pitch) / 2;
             editor.putString(VoiceSettings.PREF_PITCH, Integer.toString(pitchValue));
@@ -88,7 +86,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
 
         String rate = prefs.getString(VoiceSettings.PREF_RATE, null);
         if (rate == null) {
-            // Try the old eyes-free setting:
             SpeechSynthesis engine = new SpeechSynthesis(storageContext, null);
             int defaultValue = engine.Rate.getDefaultValue();
             int maxValue = engine.Rate.getMaxValue();
@@ -122,6 +119,27 @@ public class TtsSettingsActivity extends PreferenceActivity {
         {
             addPreferencesFromResource(R.xml.preferences);
             createPreferences(TtsSettingsActivity.this, getPreferenceScreen());
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        ImportVoicePreference pref = null;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            PrefsEspeakFragment fragment = (PrefsEspeakFragment)
+                getFragmentManager().findFragmentById(android.R.id.content);
+            if (fragment != null) {
+                pref = (ImportVoicePreference) fragment.findPreference("import_voice");
+            }
+        } else {
+            pref = (ImportVoicePreference) findPreference("import_voice");
+        }
+
+        if (pref != null) {
+            pref.handleActivityResult(requestCode, resultCode, data);
         }
     }
 
@@ -264,7 +282,7 @@ public class TtsSettingsActivity extends PreferenceActivity {
     }
 
     private static String getVoiceLabel(Voice voice) {
-        String name = voice.name; // eSpeak voice id (from engine data)
+        String name = voice.name;
         LangInfo info = lookupLangInfo(voice);
         if (info != null) {
             return info.language + " - " + info.displayName;
@@ -296,10 +314,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
         return info;
     }
 
-    // Synchronized because createPreferences() warms this from a worker thread
-    // while lookupLangInfo() may reach it from the main thread. Readers always
-    // come through here first, so they block until a build in progress
-    // finishes rather than observing a half-populated map.
     private static synchronized void ensureLangInfoLoaded() {
         if (!sLangInfo.isEmpty() || storageContext == null) return;
         File root = new File(CheckVoiceData.getDataPath(storageContext), "lang");
@@ -349,21 +363,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
         }
     }
 
-    /**
-     * Gathers what the preference screen needs from the engine, then builds it.
-     *
-     * All of the expensive part used to run inline in onCreate(): constructing
-     * SpeechSynthesis initialises the native library (nativeCreate loads
-     * phondata and the dictionaries), getAvailableVoices() enumerates every
-     * voice over JNI, and building the supported-languages list walks the whole
-     * lang/ tree opening and parsing one file per voice. That is seconds of
-     * disk and JNI work on a cold start with a slow filesystem, on the thread
-     * that has to stay responsive -- the ANR risk reported in #2430.
-     *
-     * So it is gathered on a worker thread and the preferences are added when
-     * it lands. The Preference objects themselves are still built on the main
-     * thread, which is required: they bind to the hosting PreferenceGroup.
-     */
     private static void createPreferences(final Context context, final PreferenceGroup group) {
         final Context storage = storageContext;
         final Handler handler = new Handler(Looper.getMainLooper());
@@ -377,10 +376,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
                 final SpeechSynthesis engine = new SpeechSynthesis(storage, null);
                 final List<Voice> voices = engine.getAvailableVoices();
 
-                // Warm the lang/ metadata cache here rather than leaving it to
-                // the first getVoiceLabel() call, which would drag the whole
-                // scan back onto the main thread. Skipped on Wear, where the
-                // supported-languages list is not built at all.
                 if (!isWatch) {
                     ensureLangInfoLoaded();
                 }
@@ -398,11 +393,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
         }, "espeak-settings-load").start();
     }
 
-    /**
-     * True once the hosting activity can no longer accept preference updates.
-     * The load outlives a screen the user backed straight out of, and adding
-     * preferences to a dead activity's group would leak it.
-     */
     private static boolean isGone(Context context) {
         if (!(context instanceof Activity)) {
             return false;
@@ -415,19 +405,11 @@ public class TtsSettingsActivity extends PreferenceActivity {
                 && activity.isDestroyed();
     }
 
-    /**
-     * Since the "%s" summary is currently broken, this sets the preference
-     * change listener for all {@link ListPreference} views to fill in the
-     * summary with the current entry value.
-     */
     private static void addPreferences(Context context, PreferenceGroup group,
                                        SpeechSynthesis engine, List<Voice> voices,
                                        boolean isWatch) {
         VoiceSettings settings = new VoiceSettings(PreferenceManager.getDefaultSharedPreferences(storageContext), engine);
 
-        // The supported-languages multi-select and the file-picker-driven
-        // voice import don't fit on a watch screen and have no meaningful
-        // input affordance there, so omit them on Wear.
         if (!isWatch) {
             group.addPreference(createSupportedLanguagesPreference(context, voices));
             group.addPreference(createImportVoicePreference(context));

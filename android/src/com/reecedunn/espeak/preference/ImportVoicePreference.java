@@ -17,10 +17,10 @@
 package com.reecedunn.espeak.preference;
 
 import android.app.Activity;
-import android.app.DownloadManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.preference.DialogPreference;
@@ -36,14 +36,14 @@ import com.reecedunn.espeak.R;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 
 public class ImportVoicePreference extends DialogPreference {
+    private static final int REQUEST_IMPORT_DICT = 1001;
     private File mRoot;
     private Spinner mDictionaries;
+    private Uri mSelectedFileUri;
 
     public ImportVoicePreference(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
@@ -77,6 +77,7 @@ public class ImportVoicePreference extends DialogPreference {
     @Override
     protected void onBindDialogView(View view) {
         super.onBindDialogView(view);
+        // Keep the spinner for backward compatibility, but we'll use file picker
         File[] dictionaries = mRoot.listFiles(new FileFilter() {
             @Override
             public boolean accept(File file) {
@@ -91,34 +92,96 @@ public class ImportVoicePreference extends DialogPreference {
 
     @Override
     public void onClick(DialogInterface dialog, int which) {
-        switch (which) {
-            case DialogInterface.BUTTON_POSITIVE:
-                new AsyncTask<Object,Object,File>() {
-                    @Override
-                    protected File doInBackground(Object... objects) {
-                        File source = (File)mDictionaries.getSelectedItem();
-                        if (source != null) {
-                            File destination = new File(CheckVoiceData.getDataPath(getContext()), source.getName());
-                            try {
-                                byte[] data = FileUtils.readBinary(source);
-                                FileUtils.write(destination, data);
-                                return source;
-                            } catch (IOException e) {
-                            }
-                        }
-                        return null;
-                    }
-
-                    @Override
-                    protected void onPostExecute(File file) {
-                        if (file != null) {
-                            final Intent intent = new Intent(DownloadVoiceData.BROADCAST_LANGUAGES_UPDATED);
-                            getContext().sendBroadcast(intent);
-                        }
-                    }
-                }.execute();
-                break;
+        if (which == DialogInterface.BUTTON_POSITIVE) {
+            // If the user selected a file from the spinner (legacy method), use it
+            File selectedFile = (File) mDictionaries.getSelectedItem();
+            if (selectedFile != null && selectedFile.exists()) {
+                importFile(selectedFile);
+                super.onClick(dialog, which);
+                return;
+            }
+            
+            // Otherwise, open file picker for modern Android
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("*/*");
+            ((Activity) getContext()).startActivityForResult(intent, REQUEST_IMPORT_DICT);
+            // Note: result will be handled in onActivityResult
         }
         super.onClick(dialog, which);
+    }
+
+    // Call this method from your Activity's onActivityResult
+    public void handleActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_IMPORT_DICT && resultCode == Activity.RESULT_OK) {
+            if (data != null) {
+                Uri uri = data.getData();
+                if (uri != null) {
+                    importFile(uri);
+                }
+            }
+        }
+    }
+
+    private void importFile(final File file) {
+        new AsyncTask<Object, Object, File>() {
+            @Override
+            protected File doInBackground(Object... objects) {
+                if (file != null) {
+                    File destination = new File(CheckVoiceData.getDataPath(getContext()), file.getName());
+                    try {
+                        byte[] data = FileUtils.readBinary(file);
+                        FileUtils.write(destination, data);
+                        return file;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(File file) {
+                if (file != null) {
+                    final Intent intent = new Intent(DownloadVoiceData.BROADCAST_LANGUAGES_UPDATED);
+                    getContext().sendBroadcast(intent);
+                }
+            }
+        }.execute();
+    }
+
+    private void importFile(final Uri uri) {
+        new AsyncTask<Object, Object, File>() {
+            @Override
+            protected File doInBackground(Object... objects) {
+                if (uri != null) {
+                    String fileName = uri.getLastPathSegment();
+                    if (fileName == null) {
+                        fileName = "imported_dict.dict";
+                    }
+                    // Ensure it ends with _dict
+                    if (!fileName.endsWith("_dict")) {
+                        fileName = fileName + "_dict";
+                    }
+                    File destination = new File(CheckVoiceData.getDataPath(getContext()), fileName);
+                    try {
+                        byte[] data = FileUtils.readBinary(getContext().getContentResolver().openInputStream(uri));
+                        FileUtils.write(destination, data);
+                        return destination;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(File file) {
+                if (file != null) {
+                    final Intent intent = new Intent(DownloadVoiceData.BROADCAST_LANGUAGES_UPDATED);
+                    getContext().sendBroadcast(intent);
+                }
+            }
+        }.execute();
     }
 }

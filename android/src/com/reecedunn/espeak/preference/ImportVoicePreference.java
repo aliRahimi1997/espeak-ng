@@ -28,27 +28,20 @@ import android.preference.DialogPreference;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.reecedunn.espeak.CheckVoiceData;
 import com.reecedunn.espeak.DownloadVoiceData;
-import com.reecedunn.espeak.FileListAdapter;
 import com.reecedunn.espeak.FileUtils;
 import com.reecedunn.espeak.R;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
-import java.util.Arrays;
 
 public class ImportVoicePreference extends DialogPreference {
     private static final String TAG = "ImportVoicePreference";
     private static final int REQUEST_IMPORT_DICT = 1001;
-    private File mRoot;
-    private Spinner mDictionaries;
     private Context mContext;
-    private boolean mFilePickerOpened = false;
 
     public ImportVoicePreference(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
@@ -57,8 +50,6 @@ public class ImportVoicePreference extends DialogPreference {
         setLayoutResource(R.layout.information_view);
         setPositiveButtonText(android.R.string.ok);
         setNegativeButtonText(android.R.string.cancel);
-
-        mRoot = Environment.getExternalStorageDirectory();
     }
 
     public ImportVoicePreference(Context context, AttributeSet attrs) {
@@ -76,29 +67,12 @@ public class ImportVoicePreference extends DialogPreference {
     @Override
     protected View onCreateDialogView() {
         View root = super.onCreateDialogView();
-        mDictionaries = (Spinner)root.findViewById(R.id.dictionaries);
         return root;
-    }
-
-    @Override
-    protected void onBindDialogView(View view) {
-        super.onBindDialogView(view);
-        File[] dictionaries = mRoot.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File file) {
-                return !file.isDirectory() && file.getName().endsWith("_dict");
-            }
-        });
-        if (dictionaries != null) {
-            Arrays.sort(dictionaries);
-            mDictionaries.setAdapter(new FileListAdapter((Activity) getContext(), dictionaries));
-        }
     }
 
     @Override
     public void onClick(DialogInterface dialog, int which) {
         if (which == DialogInterface.BUTTON_POSITIVE) {
-            mFilePickerOpened = true;
             Log.d(TAG, "Opening file picker");
             
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
@@ -119,8 +93,6 @@ public class ImportVoicePreference extends DialogPreference {
         Log.d(TAG, "handleActivityResult: requestCode=" + requestCode + ", resultCode=" + resultCode);
         
         if (requestCode == REQUEST_IMPORT_DICT) {
-            mFilePickerOpened = false;
-            
             if (resultCode == Activity.RESULT_OK) {
                 Log.d(TAG, "RESULT_OK");
                 

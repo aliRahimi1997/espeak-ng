@@ -24,6 +24,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.preference.Preference;
+import android.speech.tts.TextToSpeech;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.widget.Toast;
@@ -34,22 +35,18 @@ import com.reecedunn.espeak.R;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class ImportVoicePreference extends Preference {
     private static final String TAG = "ImportVoicePreference";
     private static final int REQUEST_IMPORT_DICT = 1001;
-    private Context mContext;
 
     public ImportVoicePreference(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        mContext = context;
         setLayoutResource(R.layout.information_view);
-        setOnPreferenceClickListener(new OnPreferenceClickListener() {
-            @Override
-            public boolean onPreferenceClick(Preference preference) {
-                openFilePicker();
-                return true;
-            }
+        setOnPreferenceClickListener(pref -> {
+            openFilePicker();
+            return true;
         });
     }
 
@@ -66,7 +63,7 @@ public class ImportVoicePreference extends Preference {
     }
 
     private File getDataPath() {
-        // مسیر صحیح برای ذخیره دیکشنری‌ها
+        // مسیر صحیح و قابل نوشتن برای دیکشنری‌ها
         File dataDir = new File(getContext().getFilesDir(), "voices/espeak-ng-data");
         if (!dataDir.exists()) {
             dataDir.mkdirs();
@@ -76,12 +73,11 @@ public class ImportVoicePreference extends Preference {
     }
 
     private void openFilePicker() {
-        Log.d(TAG, "Opening file picker directly");
-        
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("*/*");
+        Log.d(TAG, "Opening file picker");
         try {
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("*/*");
             ((Activity) getContext()).startActivityForResult(intent, REQUEST_IMPORT_DICT);
         } catch (Exception e) {
             Log.e(TAG, "Error opening file picker", e);
@@ -90,117 +86,84 @@ public class ImportVoicePreference extends Preference {
     }
 
     public void handleActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d(TAG, "handleActivityResult: requestCode=" + requestCode + ", resultCode=" + resultCode);
-        
-        if (requestCode == REQUEST_IMPORT_DICT) {
-            if (resultCode == Activity.RESULT_OK) {
-                Log.d(TAG, "RESULT_OK");
-                
-                if (data != null) {
-                    Uri uri = data.getData();
-                    if (uri != null) {
-                        Log.d(TAG, "URI: " + uri.toString());
-                        importFile(uri);
-                    } else {
-                        showResultDialog("ERROR: URI is null");
-                    }
-                } else {
-                    showResultDialog("ERROR: Data is null");
-                }
-            } else {
-                Log.d(TAG, "File selection cancelled");
-            }
+        if (requestCode != REQUEST_IMPORT_DICT) return;
+        if (resultCode != Activity.RESULT_OK || data == null) {
+            Log.d(TAG, "File selection cancelled or no data");
+            return;
         }
+
+        Uri uri = data.getData();
+        if (uri == null) {
+            showResultDialog("ERROR: URI is null");
+            return;
+        }
+
+        Log.d(TAG, "URI: " + uri.toString());
+        importFile(uri);
     }
 
     private void importFile(final Uri uri) {
-        new AsyncTask<Object, Object, String>() {
+        new AsyncTask<Void, Void, String>() {
             @Override
-            protected String doInBackground(Object... objects) {
+            protected String doInBackground(Void... params) {
                 try {
-                    if (uri == null) {
-                        return "ERROR: URI is null";
-                    }
-                    
-                    Log.d(TAG, "Importing from URI: " + uri.toString());
-                    
+                    // گرفتن نام فایل
                     String fileName = uri.getLastPathSegment();
-                    if (fileName == null) {
-                        fileName = "imported_dict.dict";
-                    }
-                    
-                    if (!fileName.endsWith("_dict")) {
-                        fileName = fileName + "_dict";
-                    }
-                    
-                    // ===== استفاده از متد جدید =====
+                    if (fileName == null) fileName = "imported_dict.dict";
+                    if (!fileName.endsWith("_dict")) fileName = fileName + "_dict";
+
+                    // مسیر مقصد
                     File dataPath = getDataPath();
-                    if (dataPath == null) {
-                        return "ERROR: Data path is null";
-                    }
-                    
-                    Log.d(TAG, "Data path: " + dataPath.getAbsolutePath());
-                    
                     File destination = new File(dataPath, fileName);
-                    
-                    Log.d(TAG, "Destination: " + destination.getAbsolutePath());
-                    
+
+                    // حذف فایل قدیمی
                     if (destination.exists()) {
-                        Log.d(TAG, "Destination file exists, deleting...");
+                        Log.d(TAG, "Deleting old file: " + destination.getAbsolutePath());
                         if (!destination.delete()) {
-                            return "ERROR: Failed to delete old file: " + destination.getAbsolutePath();
+                            return "ERROR: Failed to delete old file";
                         }
-                        Log.d(TAG, "Old file deleted successfully");
                     }
-                    
-                    java.io.InputStream inputStream = getContext().getContentResolver().openInputStream(uri);
+
+                    // خواندن فایل انتخابی
+                    InputStream inputStream = getContext().getContentResolver().openInputStream(uri);
                     if (inputStream == null) {
-                        return "ERROR: Cannot open input stream for URI";
+                        return "ERROR: Cannot open input stream";
                     }
-                    
+
                     byte[] data = FileUtils.readBinary(inputStream);
                     FileUtils.write(destination, data);
-                    
-                    if (destination.exists()) {
-                        Log.d(TAG, "File copied successfully, size: " + destination.length() + " bytes");
-                        
-                        File externalDebug = new File(Environment.getExternalStorageDirectory(), fileName + "_debug");
-                        FileUtils.write(externalDebug, data);
-                        Log.d(TAG, "Debug copy saved to: " + externalDebug.getAbsolutePath());
-                        
-                        return "SUCCESS: File imported successfully: " + fileName;
-                    } else {
-                        return "ERROR: File was not created at destination";
-                    }
+
+                    // کپی دیباگ در حافظه داخلی
+                    File debugFile = new File(Environment.getExternalStorageDirectory(), fileName + "_debug");
+                    FileUtils.write(debugFile, data);
+                    Log.d(TAG, "Debug copy: " + debugFile.getAbsolutePath());
+
+                    return "SUCCESS: " + fileName;
                 } catch (IOException e) {
-                    Log.e(TAG, "IOException during import", e);
-                    return "ERROR: IOException: " + e.getMessage();
+                    Log.e(TAG, "IO Error", e);
+                    return "ERROR: " + e.getMessage();
                 } catch (SecurityException e) {
-                    Log.e(TAG, "SecurityException during import", e);
+                    Log.e(TAG, "Security Error", e);
                     return "ERROR: Permission denied: " + e.getMessage();
                 } catch (Exception e) {
-                    Log.e(TAG, "Unexpected error during import", e);
+                    Log.e(TAG, "Unexpected error", e);
                     return "ERROR: " + e.getClass().getSimpleName() + ": " + e.getMessage();
                 }
             }
 
             @Override
             protected void onPostExecute(String result) {
-                Log.d(TAG, "Import result: " + result);
                 showResultDialog(result);
-                
+
                 if (result.startsWith("SUCCESS")) {
-                    final Intent intent = new Intent(DownloadVoiceData.BROADCAST_LANGUAGES_UPDATED);
-                    getContext().sendBroadcast(intent);
-                    
+                    // بروزرسانی TTS
+                    getContext().sendBroadcast(new Intent(DownloadVoiceData.BROADCAST_LANGUAGES_UPDATED));
+
+                    // ریستارت TTS
                     try {
-                        android.speech.tts.TextToSpeech tts = new android.speech.tts.TextToSpeech(
-                            getContext(),
-                            status -> {
-                                Log.d(TAG, "TTS restarted with status: " + status);
-                            }
-                        );
-                        tts.shutdown();
+                        new TextToSpeech(getContext(), status -> {
+                            Log.d(TAG, "TTS restarted with status: " + status);
+                        }).shutdown();
                     } catch (Exception e) {
                         Log.e(TAG, "Error restarting TTS", e);
                     }
@@ -211,16 +174,15 @@ public class ImportVoicePreference extends Preference {
 
     private void showResultDialog(String message) {
         try {
-            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-            builder.setTitle(message.startsWith("SUCCESS") ? "✓ Import Successful" : "✗ Import Failed");
-            builder.setMessage(message);
-            builder.setPositiveButton("OK", (dialog, which) -> dialog.dismiss());
-            builder.setCancelable(true);
-            
-            AlertDialog dialog = builder.create();
-            dialog.show();
+            new AlertDialog.Builder(getContext())
+                .setTitle(message.startsWith("SUCCESS") ? "✓ Import Successful" : "✗ Import Failed")
+                .setMessage(message)
+                .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                .setCancelable(true)
+                .create()
+                .show();
         } catch (Exception e) {
-            Log.e(TAG, "Error showing result dialog", e);
+            Log.e(TAG, "Error showing dialog", e);
             Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
         }
     }

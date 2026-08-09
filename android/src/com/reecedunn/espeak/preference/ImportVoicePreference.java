@@ -22,7 +22,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.preference.Preference;
 import android.speech.tts.TextToSpeech;
 import android.util.AttributeSet;
@@ -63,7 +62,6 @@ public class ImportVoicePreference extends Preference {
     }
 
     private File getDataPath() {
-        // مسیر صحیح و قابل نوشتن برای دیکشنری‌ها
         File dataDir = new File(getContext().getFilesDir(), "voices/espeak-ng-data");
         if (!dataDir.exists()) {
             dataDir.mkdirs();
@@ -107,16 +105,16 @@ public class ImportVoicePreference extends Preference {
             @Override
             protected String doInBackground(Void... params) {
                 try {
-                    // گرفتن نام فایل
                     String fileName = uri.getLastPathSegment();
                     if (fileName == null) fileName = "imported_dict.dict";
+                    if (fileName.contains("/")) {
+                        fileName = fileName.substring(fileName.lastIndexOf("/") + 1);
+                    }
                     if (!fileName.endsWith("_dict")) fileName = fileName + "_dict";
 
-                    // مسیر مقصد
                     File dataPath = getDataPath();
                     File destination = new File(dataPath, fileName);
 
-                    // حذف فایل قدیمی
                     if (destination.exists()) {
                         Log.d(TAG, "Deleting old file: " + destination.getAbsolutePath());
                         if (!destination.delete()) {
@@ -124,7 +122,6 @@ public class ImportVoicePreference extends Preference {
                         }
                     }
 
-                    // خواندن فایل انتخابی
                     InputStream inputStream = getContext().getContentResolver().openInputStream(uri);
                     if (inputStream == null) {
                         return "ERROR: Cannot open input stream";
@@ -133,8 +130,7 @@ public class ImportVoicePreference extends Preference {
                     byte[] data = FileUtils.readBinary(inputStream);
                     FileUtils.write(destination, data);
 
-                    // کپی دیباگ در حافظه داخلی
-                    File debugFile = new File(Environment.getExternalStorageDirectory(), fileName + "_debug");
+                    File debugFile = new File(getContext().getCacheDir(), fileName + "_debug");
                     FileUtils.write(debugFile, data);
                     Log.d(TAG, "Debug copy: " + debugFile.getAbsolutePath());
 
@@ -156,10 +152,8 @@ public class ImportVoicePreference extends Preference {
                 showResultDialog(result);
 
                 if (result.startsWith("SUCCESS")) {
-                    // بروزرسانی TTS
                     getContext().sendBroadcast(new Intent(DownloadVoiceData.BROADCAST_LANGUAGES_UPDATED));
 
-                    // ریستارت TTS
                     try {
                         new TextToSpeech(getContext(), status -> {
                             Log.d(TAG, "TTS restarted with status: " + status);

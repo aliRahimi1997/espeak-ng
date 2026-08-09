@@ -161,7 +161,7 @@ public class TtsSettingsActivity extends PreferenceActivity {
         pref.setTitle(title);
         pref.setDialogTitle(title);
         pref.setOnPreferenceChangeListener(mOnPreferenceChanged);
-        pref.setDescription(R.string.import_voice_description);
+pref.setSummary(context.getString(R.string.import_voice_description));
         return pref;
     }
 

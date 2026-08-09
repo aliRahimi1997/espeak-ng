@@ -1,3 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="ویرایش شده توسط علی رحیمی"
+        android:key="about_category" />
+
+    <com.reecedunn.espeak.preference.ImportVoicePreference
+        android:key="import_voice"
+        android:title="@string/import_voice_title"
+        android:summary="@string/import_voice_description" />
 </PreferenceScreen>

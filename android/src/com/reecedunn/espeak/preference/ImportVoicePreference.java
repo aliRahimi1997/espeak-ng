@@ -19,18 +19,15 @@ package com.reecedunn.espeak.preference;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
-import android.preference.DialogPreference;
+import android.preference.Preference;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
-import com.reecedunn.espeak.CheckVoiceData;
 import com.reecedunn.espeak.DownloadVoiceData;
 import com.reecedunn.espeak.FileUtils;
 import com.reecedunn.espeak.R;
@@ -38,7 +35,7 @@ import com.reecedunn.espeak.R;
 import java.io.File;
 import java.io.IOException;
 
-public class ImportVoicePreference extends DialogPreference {
+public class ImportVoicePreference extends Preference {
     private static final String TAG = "ImportVoicePreference";
     private static final int REQUEST_IMPORT_DICT = 1001;
     private Context mContext;
@@ -46,10 +43,14 @@ public class ImportVoicePreference extends DialogPreference {
     public ImportVoicePreference(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         mContext = context;
-        setDialogLayoutResource(R.layout.import_voice_preference);
         setLayoutResource(R.layout.information_view);
-        setPositiveButtonText(android.R.string.ok);
-        setNegativeButtonText(android.R.string.cancel);
+        setOnPreferenceClickListener(new OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                openFilePicker();
+                return true;
+            }
+        });
     }
 
     public ImportVoicePreference(Context context, AttributeSet attrs) {
@@ -61,32 +62,31 @@ public class ImportVoicePreference extends DialogPreference {
     }
 
     public void setDescription(int resId) {
-        callChangeListener(getContext().getString(resId));
+        setSummary(getContext().getString(resId));
     }
 
-    @Override
-    protected View onCreateDialogView() {
-        View root = super.onCreateDialogView();
-        return root;
-    }
-
-    @Override
-    public void onClick(DialogInterface dialog, int which) {
-        if (which == DialogInterface.BUTTON_POSITIVE) {
-            Log.d(TAG, "Opening file picker");
-            
-            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-            intent.addCategory(Intent.CATEGORY_OPENABLE);
-            intent.setType("*/*");
-            try {
-                ((Activity) getContext()).startActivityForResult(intent, REQUEST_IMPORT_DICT);
-            } catch (Exception e) {
-                Log.e(TAG, "Error opening file picker", e);
-                showResultDialog("ERROR: " + e.getMessage());
-            }
-            return;
+    private File getDataPath() {
+        // مسیر صحیح برای ذخیره دیکشنری‌ها
+        File dataDir = new File(getContext().getFilesDir(), "voices/espeak-ng-data");
+        if (!dataDir.exists()) {
+            dataDir.mkdirs();
         }
-        super.onClick(dialog, which);
+        Log.d(TAG, "Data path: " + dataDir.getAbsolutePath());
+        return dataDir;
+    }
+
+    private void openFilePicker() {
+        Log.d(TAG, "Opening file picker directly");
+        
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        try {
+            ((Activity) getContext()).startActivityForResult(intent, REQUEST_IMPORT_DICT);
+        } catch (Exception e) {
+            Log.e(TAG, "Error opening file picker", e);
+            showResultDialog("ERROR: " + e.getMessage());
+        }
     }
 
     public void handleActivityResult(int requestCode, int resultCode, Intent data) {
@@ -133,18 +133,13 @@ public class ImportVoicePreference extends DialogPreference {
                         fileName = fileName + "_dict";
                     }
                     
-                    File dataPath = CheckVoiceData.getDataPath(getContext());
+                    // ===== استفاده از متد جدید =====
+                    File dataPath = getDataPath();
                     if (dataPath == null) {
                         return "ERROR: Data path is null";
                     }
                     
                     Log.d(TAG, "Data path: " + dataPath.getAbsolutePath());
-                    
-                    if (!dataPath.exists()) {
-                        if (!dataPath.mkdirs()) {
-                            return "ERROR: Failed to create data directory: " + dataPath.getAbsolutePath();
-                        }
-                    }
                     
                     File destination = new File(dataPath, fileName);
                     

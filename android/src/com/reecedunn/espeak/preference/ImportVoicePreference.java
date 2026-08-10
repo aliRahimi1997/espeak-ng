@@ -62,7 +62,8 @@ public class ImportVoicePreference extends Preference {
     }
 
     private File getDataPath() {
-        File dataDir = new File(getContext().getFilesDir(), "voices/espeak-ng-data");
+        File dataDir = getContext().getDir("voices", Context.MODE_PRIVATE);
+        dataDir = new File(dataDir, "espeak-ng-data");
         if (!dataDir.exists()) {
             dataDir.mkdirs();
         }

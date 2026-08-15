@@ -939,6 +939,11 @@ static int TranslateLetter(Translator *tr, char *word, char *phonemes, int contr
 
 	n_bytes = utf8_in(&letter, word);
 
+	if (letter >= 0x2800 && letter <= 0x28ff) {
+		phonemes[0] = 0;
+		return n_bytes;
+	}
+
 	if ((letter & 0xfff00) == 0x0e000)
 		letter &= 0xff; // uncode private usage area
 

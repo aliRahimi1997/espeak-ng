@@ -26,10 +26,8 @@
 package com.reecedunn.espeak;
 
 import android.annotation.SuppressLint;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.media.AudioTrack;
 import android.os.Build;
 import android.os.Bundle;
@@ -71,25 +69,24 @@ public class TtsService extends TextToSpeechService {
     private final Map<String, Voice> mAvailableVoices = new HashMap<String, Voice>();
     protected Voice mMatchingVoice = null;
 
-    private BroadcastReceiver mOnLanguagesDownloaded = null;
+@Override
+public void onCreate() {
+    storageContext = EspeakApp.getStorageContext();
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+        storageContext.moveSharedPreferencesFrom(this, this.getPackageName() + "_preferences");
 
-    @Override
-    public void onCreate() {
-        storageContext = EspeakApp.getStorageContext();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-            storageContext.moveSharedPreferencesFrom(this, this.getPackageName() + "_preferences");
-        initializeTtsEngine();
-        super.onCreate();
+    if (!CheckVoiceData.hasBaseResources(storageContext)
+            || CheckVoiceData.canUpgradeResources(storageContext)) {
+        CheckVoiceData.extractVoiceData(storageContext);
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (mOnLanguagesDownloaded != null) {
-            unregisterReceiver(mOnLanguagesDownloaded);
-        }
-    }
-
+    initializeTtsEngine();
+    super.onCreate();
+}
+@Override
+public void onDestroy() {
+    super.onDestroy();
+}
     /**
      * Sets up the native eSpeak engine.
      */
@@ -121,27 +118,10 @@ public class TtsService extends TextToSpeechService {
             mMatchingVoice.locale.getVariant()
         };
     }
-
-    private Pair<Voice, Integer> findVoice(String language, String country, String variant) {
-        if (!CheckVoiceData.hasBaseResources(storageContext) || CheckVoiceData.canUpgradeResources(storageContext)) {
-            if (mOnLanguagesDownloaded == null) {
-                mOnLanguagesDownloaded = new BroadcastReceiver() {
-                    @Override
-                    public void onReceive(Context context, Intent intent) {
-                        initializeTtsEngine();
-                    }
-                };
-
-                final IntentFilter filter = new IntentFilter(DownloadVoiceData.BROADCAST_LANGUAGES_UPDATED);
-                registerReceiver(mOnLanguagesDownloaded, filter);
-            }
-
-            final Intent intent = new Intent(storageContext, DownloadVoiceData.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-
-            return new Pair<>(null, TextToSpeech.LANG_MISSING_DATA);
-        }
+private Pair<Voice, Integer> findVoice(String language, String country, String variant) {
+    if (!CheckVoiceData.hasBaseResources(storageContext)) {
+        return new Pair<>(null, TextToSpeech.LANG_MISSING_DATA);
+    }
 
         final Locale query = new Locale(language, country, variant);
 

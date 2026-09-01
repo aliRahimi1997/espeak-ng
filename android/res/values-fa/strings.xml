@@ -51,6 +51,13 @@
   <string name="espeak_pitch_range">انعطاف صدا</string>
   <string name="espeak_variant">نوع صدا</string>
   <string name="espeak_speak_punctuation">خواندن علائم نگارشی</string>
+  <!--Source: Checkbox label.
+        Description: When enabled, stylized Unicode text is converted to plain
+        letters (Unicode NFKC normalization) before being spoken.-->
+  <string name="setting_unicode_normalization">نرمال‌سازی یونیکد</string>
+  <!--Source: Checkbox summary.
+        Description: Explains the Unicode normalization setting.-->
+  <string name="setting_unicode_normalization_summary">خواندن متن‌های یونیکد با ظاهر خاص، مانند فونت‌های فانتزی شبکه‌های اجتماعی، به صورت کلمات معمولی</string>
   <string name="punctuation_all">همه</string>
   <string name="punctuation_custom">سفارشی</string>
   <string name="punctuation_custom_fmt">سفارشی: %s</string>

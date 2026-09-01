@@ -7,7 +7,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,7 @@
  * This file implements the Android Text-to-Speech engine for eSpeak.
  *
  * Android Version: 4.0 (Ice Cream Sandwich)
- * API Version:     14
+ * API Version: 14
  */
 
 package com.reecedunn.espeak;
@@ -66,27 +66,45 @@ public class TtsService extends TextToSpeechService {
     private SpeechSynthesis mEngine;
     private SynthesisCallback mCallback;
 
+    /** Text handed to eSpeak for the current request. */
+    private String mSynthText;
+    /** Where {@link #mSynthText} starts within the text the caller supplied. */
+    private int mSynthTextOffset;
+    /**
+     * Offset map back to the caller's text when {@link #mSynthText} is a
+     * normalized copy of it, or null when they are the same string.
+     */
+    private UnicodeNormalization.Result mSynthNormalization;
+    /** Number of code points in {@link #mSynthText}. */
+    private int mSynthTextCodePoints;
+    /** Anchor for incremental code point to UTF-16 index conversion. */
+    private int mAnchorCodePoint;
+    private int mAnchorOffset;
+
     private final Map<String, Voice> mAvailableVoices = new HashMap<String, Voice>();
+
     protected Voice mMatchingVoice = null;
 
-@Override
-public void onCreate() {
-    storageContext = EspeakApp.getStorageContext();
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-        storageContext.moveSharedPreferencesFrom(this, this.getPackageName() + "_preferences");
+    @Override
+    public void onCreate() {
+        storageContext = EspeakApp.getStorageContext();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+            storageContext.moveSharedPreferencesFrom(this, this.getPackageName() + "_preferences");
 
-    if (!CheckVoiceData.hasBaseResources(storageContext)
-            || CheckVoiceData.canUpgradeResources(storageContext)) {
-        CheckVoiceData.extractVoiceData(storageContext);
+        if (!CheckVoiceData.hasBaseResources(storageContext)
+                || CheckVoiceData.canUpgradeResources(storageContext)) {
+            CheckVoiceData.extractVoiceData(storageContext);
+        }
+
+        initializeTtsEngine();
+        super.onCreate();
     }
 
-    initializeTtsEngine();
-    super.onCreate();
-}
-@Override
-public void onDestroy() {
-    super.onDestroy();
-}
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
     /**
      * Sets up the native eSpeak engine.
      */
@@ -97,31 +115,36 @@ public void onDestroy() {
         }
 
         mEngine = new SpeechSynthesis(storageContext, mSynthCallback);
+
         mAvailableVoices.clear();
+
         for (Voice voice : mEngine.getAvailableVoices()) {
             mAvailableVoices.put(voice.name, voice);
         }
 
         final Intent intent = new Intent(ESPEAK_INITIALIZED);
+
         sendBroadcast(intent);
     }
 
     @Override
     protected String[] onGetLanguage() {
         // This is used to specify the language requested from GetSampleText.
+
         if (mMatchingVoice == null) {
             return new String[] { "eng", "GBR", "" };
         }
+
         return new String[] {
-            mMatchingVoice.locale.getISO3Language(),
-            mMatchingVoice.locale.getISO3Country(),
-            mMatchingVoice.locale.getVariant()
+                mMatchingVoice.locale.getISO3Language(),
+                mMatchingVoice.locale.getISO3Country(),
+                mMatchingVoice.locale.getVariant()
         };
     }
-private Pair<Voice, Integer> findVoice(String language, String country, String variant) {
-    if (!CheckVoiceData.hasBaseResources(storageContext)) {
-        return new Pair<>(null, TextToSpeech.LANG_MISSING_DATA);
-    }
+    private Pair<Voice, Integer> findVoice(String language, String country, String variant) {
+        if (!CheckVoiceData.hasBaseResources(storageContext)) {
+            return new Pair<>(null, TextToSpeech.LANG_MISSING_DATA);
+        }
 
         final Locale query = new Locale(language, country, variant);
 
@@ -241,7 +264,6 @@ private Pair<Voice, Integer> findVoice(String language, String country, String v
             return request.getText();
         }
     }
-
     private int selectVoice(SynthesisRequest request) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             final String name = request.getVoiceName();
@@ -278,18 +300,60 @@ private Pair<Voice, Integer> findVoice(String language, String country, String v
             }
         }
 
+        int textOffset = 0;
+
         if (text.startsWith("<?xml"))
         {
             // eSpeak does not recognise/skip "<?...?>" preprocessing tags,
-            // so need to remove these before passing to synthesize.
-            text = text.substring(text.indexOf("?>") + 2).trim();
+            // so need to remove these before passing to synthesize. A
+            // declaration missing its "?>" is left alone rather than having
+            // its first character eaten by a -1 index.
+            final int terminator = text.indexOf("?>");
+            if (terminator >= 0)
+            {
+                final int declarationEnd = terminator + 2;
+
+                // Track what was dropped from the front, so that word
+                // boundaries can be reported against the text the caller
+                // actually passed in.
+                textOffset = declarationEnd;
+                while (textOffset < text.length() && text.charAt(textOffset) <= ' ') {
+                    textOffset++;
+                }
+
+                text = text.substring(declarationEnd).trim();
+            }
         }
 
-        mCallback = callback;
-        mCallback.start(mEngine.getSampleRate(), mEngine.getAudioFormat(), mEngine.getChannelCount());
+        final VoiceSettings settings = new VoiceSettings(
+                PreferenceManager.getDefaultSharedPreferences(storageContext),
+                mEngine);
 
-        final VoiceSettings settings = new VoiceSettings(PreferenceManager.getDefaultSharedPreferences(storageContext), mEngine);
+        UnicodeNormalization.Result normalization = null;
+        if (settings.isUnicodeNormalizationEnabled()) {
+            // NFKC leaves ASCII untouched, so SSML markup passes through
+            // unchanged and the "<speak" sniff below still works.
+            normalization = UnicodeNormalization.normalize(text);
+            if (normalization != null) {
+                text = normalization.text;
+            }
+        }
+
+        mSynthText = text;
+        mSynthTextOffset = textOffset;
+        mSynthNormalization = normalization;
+        mSynthTextCodePoints = text.codePointCount(0, text.length());
+        mAnchorCodePoint = 0;
+        mAnchorOffset = 0;
+
+        mCallback = callback;
+        mCallback.start(
+                mEngine.getSampleRate(),
+                mEngine.getAudioFormat(),
+                mEngine.getChannelCount());
+
         mEngine.setVoice(mMatchingVoice, settings.getVoiceVariant());
+
         mEngine.Rate.setValue(settings.getRate(), request.getSpeechRate());
         mEngine.Pitch.setValue(settings.getPitch(), request.getPitch());
         mEngine.PitchRange.setValue(settings.getPitchRange());
@@ -315,7 +379,9 @@ private Pair<Voice, Integer> findVoice(String language, String country, String v
             int offset = 0;
 
             while (offset < audioData.length) {
-                final int bytesToWrite = Math.min(maxBytesToCopy, (audioData.length - offset));
+                final int bytesToWrite = Math.min(
+                        maxBytesToCopy,
+                        (audioData.length - offset));
                 mCallback.audioAvailable(audioData, offset, bytesToWrite);
                 offset += bytesToWrite;
             }
@@ -325,5 +391,65 @@ private Pair<Voice, Integer> findVoice(String language, String country, String v
         public void onSynthDataComplete() {
             mCallback.done();
         }
+
+        @Override
+        public void onSynthWordBoundary(int textPosition, int textLength, int markerInFrames) {
+            // rangeStart() is API 26; below that the framework has no way to
+            // deliver word boundaries to the caller.
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || mSynthText == null) {
+                return;
+            }
+
+            // eSpeak counts code points from 1, rangeStart() wants 0-based UTF-16
+            // indices into the text the caller supplied.
+            final int wordStart = textPosition - 1;
+            int start = codePointToOffset(wordStart);
+            int end = codePointToOffset(wordStart + Math.max(textLength, 0));
+
+            if (mSynthNormalization != null) {
+                // The engine spoke normalized text; report the range against
+                // the original so highlighting tracks the caller's string.
+                start = mSynthNormalization.toOriginalOffset(start);
+                end = mSynthNormalization.toOriginalOffset(end);
+            }
+
+            if (end <= start) {
+                return;
+            }
+
+            mCallback.rangeStart(
+                    markerInFrames,
+                    mSynthTextOffset + start,
+                    mSynthTextOffset + end);
+        }
     };
+
+    /**
+     * Converts a code point index in the text handed to eSpeak into a
+     * UTF-16 offset.
+     *
+     * eSpeak reports word boundaries using Unicode code point positions,
+     * while Android's rangeStart() uses UTF-16 offsets.
+     */
+    private int codePointToOffset(int codePoint) {
+        if (codePoint <= 0) {
+            return 0;
+        }
+
+        if (codePoint >= mSynthTextCodePoints) {
+            return mSynthText.length();
+        }
+
+        if (codePoint < mAnchorCodePoint) {
+            mAnchorCodePoint = 0;
+            mAnchorOffset = 0;
+        }
+
+        mAnchorOffset = mSynthText.offsetByCodePoints(
+                mAnchorOffset,
+                codePoint - mAnchorCodePoint);
+        mAnchorCodePoint = codePoint;
+
+        return mAnchorOffset;
+    }
 }

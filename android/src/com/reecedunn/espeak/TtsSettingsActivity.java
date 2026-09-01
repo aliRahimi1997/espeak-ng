@@ -27,6 +27,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.MultiSelectListPreference;
 import android.preference.Preference;
@@ -167,6 +168,16 @@ public class TtsSettingsActivity extends PreferenceActivity {
         pref.setOnPreferenceChangeListener(mOnPreferenceChanged);
         pref.setPersistent(true);
         pref.setVoiceSettings(settings);
+        return pref;
+    }
+
+    private static Preference createUnicodeNormalizationPreference(Context context) {
+        final CheckBoxPreference pref = new CheckBoxPreference(context);
+        pref.setTitle(R.string.setting_unicode_normalization);
+        pref.setSummary(R.string.setting_unicode_normalization_summary);
+        pref.setKey(VoiceSettings.PREF_UNICODE_NORMALIZATION);
+        pref.setDefaultValue(true);
+        pref.setPersistent(true);
         return pref;
     }
 
@@ -434,6 +445,7 @@ public class TtsSettingsActivity extends PreferenceActivity {
         }
         group.addPreference(createVoiceVariantPreference(context, settings, R.string.espeak_variant));
         group.addPreference(createSpeakPunctuationPreference(context, settings, R.string.espeak_speak_punctuation));
+        group.addPreference(createUnicodeNormalizationPreference(context));
         group.addPreference(createSeekBarPreference(context, engine.Rate, VoiceSettings.PREF_RATE, R.string.setting_default_rate));
         group.addPreference(createSeekBarPreference(context, engine.Pitch, VoiceSettings.PREF_PITCH, R.string.setting_default_pitch));
         group.addPreference(createSeekBarPreference(context, engine.PitchRange, VoiceSettings.PREF_PITCH_RANGE, R.string.espeak_pitch_range));

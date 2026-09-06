@@ -73,17 +73,25 @@ public class TtsService extends TextToSpeechService {
     @Override
     public void onCreate() {
         storageContext = EspeakApp.getStorageContext();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+        
+        final android.content.SharedPreferences prefs = 
+                PreferenceManager.getDefaultSharedPreferences(storageContext);
+        
+        // === فقط یک بار فایل تنظیمات را جابجا کن ===
+        final boolean isMigrated = prefs.getBoolean("pref_migrated_to_storage", false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && !isMigrated) {
             storageContext.moveSharedPreferencesFrom(
                     this,
                     this.getPackageName() + "_preferences");
+            prefs.edit().putBoolean("pref_migrated_to_storage", true).apply();
+        }
+        // ==========================================
 
         if (!CheckVoiceData.hasBaseResources(storageContext)
                 || CheckVoiceData.canUpgradeResources(storageContext)) {
             CheckVoiceData.extractVoiceData(storageContext);
         }
 
-        final android.content.SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(storageContext);
         if (!prefs.contains(VoiceSettings.PREF_UNICODE_NORMALIZATION)) {
             prefs.edit().putBoolean(VoiceSettings.PREF_UNICODE_NORMALIZATION, true).apply();
         }

@@ -83,6 +83,11 @@ public class TtsService extends TextToSpeechService {
             CheckVoiceData.extractVoiceData(storageContext);
         }
 
+        final android.content.SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(storageContext);
+        if (!prefs.contains(VoiceSettings.PREF_UNICODE_NORMALIZATION)) {
+            prefs.edit().putBoolean(VoiceSettings.PREF_UNICODE_NORMALIZATION, true).apply();
+        }
+
         initializeTtsEngine();
         super.onCreate();
     }

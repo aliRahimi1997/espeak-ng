@@ -22,8 +22,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -91,6 +89,9 @@ public class TtsSettingsActivity extends PreferenceActivity {
         }
 
         editor.commit();
+        if (!prefs.contains(VoiceSettings.PREF_UNICODE_NORMALIZATION)) {
+            prefs.edit().putBoolean(VoiceSettings.PREF_UNICODE_NORMALIZATION, true).apply();
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
         {

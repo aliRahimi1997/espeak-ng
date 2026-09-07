@@ -2,6 +2,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
     <item android:id="@+id/espeakSettings" android:title="@string/engine_settings"></item>
     <item android:id="@+id/ttsSettings" android:title="@string/tts_settings"></item>
-    
-
+<item android:id="@id/menu_telegram" android:title="@string/menu_telegram" />
+<item android:id="@id/menu_email" android:title="@string/menu_email" />
 </menu>

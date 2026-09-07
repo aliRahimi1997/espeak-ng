@@ -64,7 +64,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
             PreferenceManager preferenceManager = getPreferenceManager();
             preferenceManager.setStorageDeviceProtected ();
         }
-        // Migrate old eyes-free settings to the new settings:
 
         storageContext = EspeakApp.getStorageContext();
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(storageContext);
@@ -72,7 +71,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
 
         String pitch = prefs.getString(VoiceSettings.PREF_PITCH, null);
         if (pitch == null) {
-            // Try the old eyes-free setting:
             pitch = prefs.getString(VoiceSettings.PREF_DEFAULT_PITCH, "100");
             int pitchValue = Integer.parseInt(pitch) / 2;
             editor.putString(VoiceSettings.PREF_PITCH, Integer.toString(pitchValue));
@@ -80,7 +78,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
 
         String rate = prefs.getString(VoiceSettings.PREF_RATE, null);
         if (rate == null) {
-            // Try the old eyes-free setting:
             SpeechSynthesis engine = new SpeechSynthesis(storageContext, null);
             int defaultValue = engine.Rate.getDefaultValue();
             int maxValue = engine.Rate.getMaxValue();
@@ -177,7 +174,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
                 boolean isChecked = (Boolean) newValue;
                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(storageContext);
                 prefs.edit().putBoolean(VoiceSettings.PREF_UNICODE_NORMALIZATION, isChecked).apply();
-                preference.setSummary(isChecked ? "Enabled" : "Disabled");
                 return true;
             }
         });
@@ -223,11 +219,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
         return pref;
     }
 
-    /**
-     * Since the "%s" summary is currently broken, this sets the preference
-     * change listener for all {@link ListPreference} views to fill in the
-     * summary with the current entry value.
-     */
     private static void createPreferences(Context context, PreferenceGroup group) {
         SpeechSynthesis engine = new SpeechSynthesis(storageContext, null);
         VoiceSettings settings = new VoiceSettings(PreferenceManager.getDefaultSharedPreferences(storageContext), engine);

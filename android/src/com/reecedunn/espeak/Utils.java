@@ -83,14 +83,5 @@ public class Utils {
                 .create();
 
         dialog.show();
-
-        if (dialog.getListView() != null) {
-            dialog.getListView().post(() -> {
-                dialog.getListView().requestFocus();
-                if (dialog.getListView().getChildAt(0) != null) {
-                    dialog.getListView().getChildAt(0).sendAccessibilityEvent(android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED);
-                }
-            });
-        }
     }
 }

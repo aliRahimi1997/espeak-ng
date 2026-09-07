@@ -77,4 +77,6 @@
   <string name="import_voice_description">افزودن یک فایل دیکشنری صوتی eSpeak از کارت حافظه</string>
 <string name="menu_telegram">تماس با ما در تلگرام</string>
 <string name="menu_email">ارسال ایمیل به پشتیبانی</string>
+<string name="chooser_telegram">انتخاب برنامه تلگرام</string>
+<string name="no_telegram_app">هیچ برنامه تلگرامی روی دستگاه شما نصب نیست.</string>
 </resources>

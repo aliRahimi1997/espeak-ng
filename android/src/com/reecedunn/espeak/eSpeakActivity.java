@@ -22,6 +22,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -36,6 +37,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -153,6 +155,12 @@ public class eSpeakActivity extends Activity {
             return true;
         case R.id.ttsSettings:
             launchGeneralTtsSettings();
+            return true;
+        case R.id.menu_telegram:
+            openTelegram();
+            return true;
+        case R.id.menu_email:
+            sendEmail();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -337,5 +345,29 @@ public class eSpeakActivity extends Activity {
             intent = new Intent(ACTION_TTS_SETTINGS);
         }
         startActivityForResult(intent, REQUEST_DEFAULT);
+    }
+    private void openTelegram() {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("tg://resolve?domain=r2998"));
+            startActivity(intent);
+        } catch (Exception e) {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/r2998"));
+            startActivity(intent);
+        }
+    }
+
+    /**
+     * ارسال ایمیل به آدرس ali.c5468@gmail.com
+     */
+    private void sendEmail() {
+        Intent intent = new Intent(Intent.ACTION_SENDTO);
+        intent.setData(Uri.parse("mailto:ali.c5468@gmail.com"));
+        intent.putExtra(Intent.EXTRA_SUBJECT, "پشتیبانی eSpeak");
+        intent.putExtra(Intent.EXTRA_TEXT, "سلام، من مشکل زیر را دارم...");
+        try {
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "لطفاً یک برنامه‌ی ایمیل نصب کنید.", Toast.LENGTH_SHORT).show();
+        }
     }
 }

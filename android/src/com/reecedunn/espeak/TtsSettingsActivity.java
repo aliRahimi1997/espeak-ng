@@ -228,7 +228,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
         group.addPreference(createSeekBarPreference(context, engine.Volume, VoiceSettings.PREF_VOLUME, R.string.espeak_volume));
         Preference telegramPref = new Preference(context);
         telegramPref.setTitle(R.string.menu_telegram);
-        telegramPref.setSummary(R.string.telegram_summary);
         telegramPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {

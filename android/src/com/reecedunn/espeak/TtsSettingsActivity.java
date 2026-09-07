@@ -153,8 +153,21 @@ public class TtsSettingsActivity extends PreferenceActivity {
         pref.setTitle(R.string.setting_unicode_normalization);
         pref.setSummary(R.string.setting_unicode_normalization_summary);
         pref.setKey(VoiceSettings.PREF_UNICODE_NORMALIZATION);
-        pref.setDefaultValue(true);
-        pref.setPersistent(true);
+        pref.setPersistent(false);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(storageContext);
+        boolean currentValue = prefs.getBoolean(VoiceSettings.PREF_UNICODE_NORMALIZATION, true);
+        pref.setChecked(currentValue);
+        pref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                boolean isChecked = (Boolean) newValue;
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(storageContext);
+                prefs.edit().putBoolean(VoiceSettings.PREF_UNICODE_NORMALIZATION, isChecked).apply();
+                preference.setSummary(isChecked ? "Enabled" : "Disabled");
+                return true;
+            }
+        });
+
         return pref;
     }
 

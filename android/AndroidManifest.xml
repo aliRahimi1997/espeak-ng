@@ -7,11 +7,23 @@
         android:name="android.hardware.touchscreen"
         android:required="false" />
 
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="tg" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" android:host="t.me" />
+        </intent>
+    </queries>
+
     <application
         android:name="com.reecedunn.espeak.EspeakApp"
         android:icon="@mipmap/icon"
         android:theme="@style/AppTheme"
         android:label="Espeak V" >
+        
         <service
             android:name=".TtsService"
             android:label="eSpeak V"
@@ -38,6 +50,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        
         <activity
             android:name=".CheckVoiceData"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
@@ -48,6 +61,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        
         <activity
             android:name=".GetSampleText"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
@@ -58,6 +72,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        
         <activity
             android:name=".TtsSettingsActivity"
             android:label="@string/tts_settings_label"
@@ -68,6 +83,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        
         <activity
             android:name=".eSpeakActivity"
             android:label="Espeak V"

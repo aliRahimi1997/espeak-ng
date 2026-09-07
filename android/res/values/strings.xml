@@ -105,4 +105,6 @@
   <string name="variant_whisper">Whisper</string>
   <string name="import_voice_title">Import eSpeak dictionary</string>
   <string name="import_voice_description">Import an eSpeak voice dictionary file from the SD card.</string>
+<string name="menu_telegram">Contact us on Telegram</string>
+<string name="menu_email">Send email to support</string>
 </resources>

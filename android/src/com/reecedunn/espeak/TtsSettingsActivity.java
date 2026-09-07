@@ -226,6 +226,17 @@ public class TtsSettingsActivity extends PreferenceActivity {
         group.addPreference(createSeekBarPreference(context, engine.Pitch, VoiceSettings.PREF_PITCH, R.string.setting_default_pitch));
         group.addPreference(createSeekBarPreference(context, engine.PitchRange, VoiceSettings.PREF_PITCH_RANGE, R.string.espeak_pitch_range));
         group.addPreference(createSeekBarPreference(context, engine.Volume, VoiceSettings.PREF_VOLUME, R.string.espeak_volume));
+        Preference telegramPref = new Preference(context);
+        telegramPref.setTitle(R.string.menu_telegram);
+        telegramPref.setSummary(R.string.telegram_summary);
+        telegramPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                Utils.openTelegram(context);
+                return true;
+            }
+        });
+        group.addPreference(telegramPref);
     }
 
     private static final OnPreferenceChangeListener mOnPreferenceChanged =

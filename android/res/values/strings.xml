@@ -107,4 +107,6 @@
   <string name="import_voice_description">Import an eSpeak voice dictionary file from the SD card.</string>
 <string name="menu_telegram">Contact us on Telegram</string>
 <string name="menu_email">Send email to support</string>
+<string name="chooser_telegram">Choose Telegram app</string>
+<string name="no_telegram_app">No Telegram app is installed on your device.</string>
 </resources>

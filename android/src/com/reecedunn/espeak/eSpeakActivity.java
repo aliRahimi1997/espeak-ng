@@ -22,6 +22,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -74,6 +76,18 @@ public class eSpeakActivity extends Activity {
             populateInformationView();
         }
     };
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            Resources sysRes = Resources.getSystem();
+            Configuration config = sysRes.getConfiguration();
+            Context context = newBase.createConfigurationContext(config);
+            super.attachBaseContext(context);
+        } else {
+            super.attachBaseContext(newBase);
+        }
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

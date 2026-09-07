@@ -89,9 +89,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
         }
 
         editor.commit();
-        if (!prefs.contains(VoiceSettings.PREF_UNICODE_NORMALIZATION)) {
-            prefs.edit().putBoolean(VoiceSettings.PREF_UNICODE_NORMALIZATION, true).apply();
-        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
         {

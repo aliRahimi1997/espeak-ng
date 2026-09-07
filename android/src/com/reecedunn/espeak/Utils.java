@@ -1,33 +1,25 @@
 package com.reecedunn.espeak;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.widget.Toast;
-
-import java.util.List;
 
 public class Utils {
 
     public static void openTelegram(Context context) {
         Intent telegramIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("tg://resolve?domain=r2998"));
-        PackageManager pm = context.getPackageManager();
+        Intent chooser = Intent.createChooser(telegramIntent, context.getString(R.string.chooser_telegram));
 
-        List<ResolveInfo> activities = pm.queryIntentActivities(telegramIntent, 0);
-
-        if (activities != null && !activities.isEmpty()) {
-            Intent chooser = Intent.createChooser(telegramIntent, context.getString(R.string.chooser_telegram));
+        try {
             context.startActivity(chooser);
-        } else {
-            Toast.makeText(context, context.getString(R.string.no_telegram_app), Toast.LENGTH_LONG).show();
+        } catch (ActivityNotFoundException e1) {
+            Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/r2998"));
             try {
-                Intent marketIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=org.telegram.messenger"));
-                context.startActivity(marketIntent);
-            } catch (Exception ex) {
-                Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/r2998"));
                 context.startActivity(webIntent);
+            } catch (ActivityNotFoundException e2) {
+                Toast.makeText(context, context.getString(R.string.no_telegram_app), Toast.LENGTH_LONG).show();
             }
         }
     }

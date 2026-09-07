@@ -20,6 +20,8 @@ package com.reecedunn.espeak;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
@@ -39,6 +41,18 @@ import com.reecedunn.espeak.preference.VoiceVariantPreference;
 public class TtsSettingsActivity extends PreferenceActivity {
 
     private static Context storageContext;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            Resources sysRes = Resources.getSystem();
+            Configuration config = sysRes.getConfiguration();
+            Context context = newBase.createConfigurationContext(config);
+            super.attachBaseContext(context);
+        } else {
+            super.attachBaseContext(newBase);
+        }
+    }
 
     @Override
     @SuppressWarnings("deprecation")

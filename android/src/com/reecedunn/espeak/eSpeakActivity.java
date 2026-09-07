@@ -157,7 +157,7 @@ public class eSpeakActivity extends Activity {
             launchGeneralTtsSettings();
             return true;
         case R.id.menu_telegram:
-            openTelegram();
+            Utils.openTelegram(this);
             return true;
         case R.id.menu_email:
             sendEmail();
@@ -345,15 +345,6 @@ public class eSpeakActivity extends Activity {
             intent = new Intent(ACTION_TTS_SETTINGS);
         }
         startActivityForResult(intent, REQUEST_DEFAULT);
-    }
-    private void openTelegram() {
-        try {
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("tg://resolve?domain=r2998"));
-            startActivity(intent);
-        } catch (Exception e) {
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/r2998"));
-            startActivity(intent);
-        }
     }
 
     /**

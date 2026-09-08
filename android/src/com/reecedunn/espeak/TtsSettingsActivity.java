@@ -208,9 +208,7 @@ public class TtsSettingsActivity extends PreferenceActivity {
     }
 private static Preference createEmojiInfoPreference(Context context) {
     final Preference pref = new Preference(context);
-    pref.setTitle(" ");
-    pref.setSummary(context.getString(R.string.setting_emoji_info_title) + "\n" +
-                    context.getString(R.string.setting_emoji_info_summary));
+    pref.setLayoutResource(R.layout.preference_info_only_text);
     pref.setSelectable(false);
     pref.setEnabled(true);
     return pref;

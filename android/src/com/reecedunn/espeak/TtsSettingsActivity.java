@@ -206,15 +206,13 @@ public class TtsSettingsActivity extends PreferenceActivity {
 
         return pref;
     }
-
-    private static Preference createEmojiInfoPreference(Context context) {
-        final Preference pref = new Preference(context);
-        pref.setTitle(R.string.setting_emoji_info_title);
-        pref.setSummary(R.string.setting_emoji_info_summary);
-        pref.setSelectable(false);
-        pref.setEnabled(false);
-        return pref;
-    }
+private static Preference createEmojiInfoPreference(Context context) {
+    final PreferenceCategory pref = new PreferenceCategory(context);
+    pref.setTitle(R.string.setting_emoji_info_title);
+    pref.setSummary(R.string.setting_emoji_info_summary);
+    pref.setSelectable(false);
+    return pref;
+}
 
     private static Preference createSeekBarPreference(Context context, SpeechSynthesis.Parameter parameter, String key, int titleRes) {
         final String title = context.getString(titleRes);

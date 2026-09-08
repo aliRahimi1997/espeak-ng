@@ -16,13 +16,6 @@
  * limitations under the License.
  */
 
-/*
- * This file implements the Android Text-to-Speech engine for eSpeak.
- *
- * Android Version: 4.0 (Ice Cream Sandwich)
- * API Version: 14
- */
-
 package com.reecedunn.espeak;
 
 import android.annotation.SuppressLint;
@@ -48,12 +41,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Implements the eSpeak engine as a {@link TextToSpeechService}.
- *
- * @author msclrhd@gmail.com (Reece H. Dunn)
- * @author alanv@google.com (Alan Viverette)
- */
 @SuppressLint("NewApi")
 public class TtsService extends TextToSpeechService {
     public static final String ESPEAK_INITIALIZED =
@@ -90,6 +77,10 @@ public class TtsService extends TextToSpeechService {
             prefs.edit().putBoolean(VoiceSettings.PREF_UNICODE_NORMALIZATION, true).apply();
         }
 
+        if (!prefs.contains(VoiceSettings.PREF_EMOJI_ENABLED)) {
+            prefs.edit().putBoolean(VoiceSettings.PREF_EMOJI_ENABLED, true).apply();
+        }
+
         if (!CheckVoiceData.hasBaseResources(storageContext)
                 || CheckVoiceData.canUpgradeResources(storageContext)) {
             CheckVoiceData.extractVoiceData(storageContext);
@@ -104,9 +95,6 @@ public class TtsService extends TextToSpeechService {
         super.onDestroy();
     }
 
-    /**
-     * Sets up the native eSpeak engine.
-     */
     private void initializeTtsEngine() {
         if (mEngine != null) {
             mEngine.stop();
@@ -128,8 +116,6 @@ public class TtsService extends TextToSpeechService {
 
     @Override
     protected String[] onGetLanguage() {
-        // This is used to specify the language requested from GetSampleText.
-
         if (mMatchingVoice == null) {
             return new String[] { "eng", "GBR", "" };
         }
@@ -355,6 +341,12 @@ public class TtsService extends TextToSpeechService {
         return TextToSpeech.SUCCESS;
     }
 
+    private boolean isEmojiFilterEnabled() {
+        return PreferenceManager
+                .getDefaultSharedPreferences(storageContext)
+                .getBoolean(VoiceSettings.PREF_EMOJI_ENABLED, true);
+    }
+
     @Override
     protected synchronized void onSynthesizeText(
             SynthesisRequest request,
@@ -388,10 +380,6 @@ public class TtsService extends TextToSpeechService {
         }
 
         if (text.startsWith("<?xml")) {
-            // eSpeak does not recognise/skip "<?...?>" preprocessing tags,
-            // so need to remove these before passing to synthesize. A
-            // declaration missing its "?>" is left alone rather than having
-            // its first character eaten by a -1 index.
             final int terminator = text.indexOf("?>");
 
             if (terminator >= 0) {
@@ -405,13 +393,18 @@ public class TtsService extends TextToSpeechService {
                 mEngine);
 
         if (settings.isUnicodeNormalizationEnabled()) {
-            // NFKC leaves ASCII untouched, so SSML markup passes through
-            // unchanged and the "<speak" sniff below still works.
             final UnicodeNormalization.Result normalization =
                     UnicodeNormalization.normalize(text);
 
             if (normalization != null) {
                 text = normalization.text;
+            }
+        }
+
+        if (isEmojiFilterEnabled()) {
+            String filteredText = EmojiProcessor.removeEmojis(text);
+            if (filteredText != null && !filteredText.equals(text)) {
+                text = filteredText;
             }
         }
 
@@ -451,9 +444,6 @@ public class TtsService extends TextToSpeechService {
                 text.startsWith("<speak"));
     }
 
-    /**
-     * Pipes synthesizer output from native eSpeak to an {@link SynthesisCallback}.
-     */
     private final SpeechSynthesis.SynthReadyCallback mSynthCallback =
             new SynthReadyCallback() {
                 @Override

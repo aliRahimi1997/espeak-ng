@@ -99,6 +99,10 @@ public class TtsSettingsActivity extends PreferenceActivity {
             }
         }
 
+        if (!prefs.contains(VoiceSettings.PREF_EMOJI_ENABLED)) {
+            editor.putBoolean(VoiceSettings.PREF_EMOJI_ENABLED, true);
+        }
+
         editor.commit();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
@@ -181,6 +185,28 @@ public class TtsSettingsActivity extends PreferenceActivity {
         return pref;
     }
 
+    private static Preference createEmojiFilterPreference(Context context) {
+        final CheckBoxPreference pref = new CheckBoxPreference(context);
+        pref.setTitle(R.string.setting_emoji_filter_title);
+        pref.setSummary(R.string.setting_emoji_filter_summary);
+        pref.setKey(VoiceSettings.PREF_EMOJI_ENABLED);
+        pref.setPersistent(false);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(storageContext);
+        boolean currentValue = prefs.getBoolean(VoiceSettings.PREF_EMOJI_ENABLED, true);
+        pref.setChecked(currentValue);
+        pref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                boolean isChecked = (Boolean) newValue;
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(storageContext);
+                prefs.edit().putBoolean(VoiceSettings.PREF_EMOJI_ENABLED, isChecked).apply();
+                return true;
+            }
+        });
+
+        return pref;
+    }
+
     private static Preference createSeekBarPreference(Context context, SpeechSynthesis.Parameter parameter, String key, int titleRes) {
         final String title = context.getString(titleRes);
         final int defaultValue = parameter.getDefaultValue();
@@ -227,6 +253,7 @@ public class TtsSettingsActivity extends PreferenceActivity {
         group.addPreference(createVoiceVariantPreference(context, settings, R.string.espeak_variant));
         group.addPreference(createSpeakPunctuationPreference(context, settings, R.string.espeak_speak_punctuation));
         group.addPreference(createUnicodeNormalizationPreference(context));
+        group.addPreference(createEmojiFilterPreference(context));
         group.addPreference(createSeekBarPreference(context, engine.Rate, VoiceSettings.PREF_RATE, R.string.setting_default_rate));
         group.addPreference(createSeekBarPreference(context, engine.Pitch, VoiceSettings.PREF_PITCH, R.string.setting_default_pitch));
         group.addPreference(createSeekBarPreference(context, engine.PitchRange, VoiceSettings.PREF_PITCH_RANGE, R.string.espeak_pitch_range));

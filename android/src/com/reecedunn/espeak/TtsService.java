@@ -341,12 +341,6 @@ public class TtsService extends TextToSpeechService {
         return TextToSpeech.SUCCESS;
     }
 
-    private boolean isEmojiFilterEnabled() {
-        return PreferenceManager
-                .getDefaultSharedPreferences(storageContext)
-                .getBoolean(VoiceSettings.PREF_EMOJI_ENABLED, true);
-    }
-
     @Override
     protected synchronized void onSynthesizeText(
             SynthesisRequest request,
@@ -401,7 +395,7 @@ public class TtsService extends TextToSpeechService {
             }
         }
 
-        if (isEmojiFilterEnabled()) {
+        if (!settings.isEmojiReadingEnabled()) {
             String filteredText = EmojiProcessor.removeEmojis(text);
             if (filteredText != null && !filteredText.equals(text)) {
                 text = filteredText;

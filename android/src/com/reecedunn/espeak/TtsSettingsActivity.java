@@ -207,6 +207,14 @@ public class TtsSettingsActivity extends PreferenceActivity {
         return pref;
     }
 
+    private static Preference createEmojiInfoPreference(Context context) {
+        final Preference pref = new Preference(context);
+        pref.setTitle(R.string.setting_emoji_info_title);
+        pref.setSummary(R.string.setting_emoji_info_summary);
+        pref.setSelectable(false);
+        return pref;
+    }
+
     private static Preference createSeekBarPreference(Context context, SpeechSynthesis.Parameter parameter, String key, int titleRes) {
         final String title = context.getString(titleRes);
         final int defaultValue = parameter.getDefaultValue();
@@ -254,6 +262,7 @@ public class TtsSettingsActivity extends PreferenceActivity {
         group.addPreference(createSpeakPunctuationPreference(context, settings, R.string.espeak_speak_punctuation));
         group.addPreference(createUnicodeNormalizationPreference(context));
         group.addPreference(createEmojiFilterPreference(context));
+        group.addPreference(createEmojiInfoPreference(context));
         group.addPreference(createSeekBarPreference(context, engine.Rate, VoiceSettings.PREF_RATE, R.string.setting_default_rate));
         group.addPreference(createSeekBarPreference(context, engine.Pitch, VoiceSettings.PREF_PITCH, R.string.setting_default_pitch));
         group.addPreference(createSeekBarPreference(context, engine.PitchRange, VoiceSettings.PREF_PITCH_RANGE, R.string.espeak_pitch_range));

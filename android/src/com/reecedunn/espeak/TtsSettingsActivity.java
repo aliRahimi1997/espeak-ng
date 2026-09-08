@@ -211,10 +211,9 @@ private static Preference createEmojiInfoPreference(Context context) {
     pref.setTitle(R.string.setting_emoji_info_title);
     pref.setSummary(R.string.setting_emoji_info_summary);
     pref.setSelectable(false);
-    pref.setShouldDisableDependents(false);
+    pref.setLayoutResource(R.layout.preference_info);
     return pref;
 }
-
     private static Preference createSeekBarPreference(Context context, SpeechSynthesis.Parameter parameter, String key, int titleRes) {
         final String title = context.getString(titleRes);
         final int defaultValue = parameter.getDefaultValue();

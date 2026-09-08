@@ -28,6 +28,7 @@ public final class EmojiProcessor {
         addRange(0x1F200, 0x1F2FF); // Enclosed Ideographic Supplement
         addRange(0x1F000, 0x1F02F); // Mahjong Tiles
         addRange(0x1F0A0, 0x1F0FF); // Playing Cards
+        addRange(0x2800, 0x28FF);   // Braille Patterns
 
         // Individual Emoji Code Points (Comprehensive List)
         int[] singlePoints = {

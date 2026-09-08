@@ -80,5 +80,7 @@
 <string name="chooser_telegram">انتخاب برنامه تلگرام</string>
 <string name="no_telegram_app">هیچ برنامه تلگرامی روی دستگاه شما نصب نیست.</string>
 <string name="setting_emoji_filter_title">خواندن شکلک‌ها</string>
-<string name="setting_emoji_filter_summary">در صورت غیرفعال بودن، شکلک‌ها و ایموجی‌های متن (مانند شکلک خندان و قلب) خوانده نمی‌شوند</string>
+<string name="setting_emoji_filter_summary">این گزینه مشخص می‌کند که شکلک‌ها و ایموجی‌های موجود در متن (مانند شکلک خندان، قلب و شکلک گریان) هنگام تبدیل به گفتار خوانده شوند یا خیر</string>
+<string name="setting_emoji_info_title">نکته</string>
+<string name="setting_emoji_info_summary">در صورت بروز هرگونه مشکل در عملکرد این بخش، می‌توانید از طریق گزینه ارتباط با پشتیبانی (تلگرام) که در انتهای همین صفحه و همچنین در منوی «بیشتر» در صفحه اصلی برنامه قرار دارند، موضوع را گزارش دهید</string>
 </resources>

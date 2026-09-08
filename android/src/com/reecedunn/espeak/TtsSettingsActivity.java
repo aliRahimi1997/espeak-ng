@@ -212,6 +212,7 @@ public class TtsSettingsActivity extends PreferenceActivity {
         pref.setTitle(R.string.setting_emoji_info_title);
         pref.setSummary(R.string.setting_emoji_info_summary);
         pref.setSelectable(false);
+        pref.setEnabled(false);
         return pref;
     }
 

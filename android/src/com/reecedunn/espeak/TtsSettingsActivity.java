@@ -207,10 +207,11 @@ public class TtsSettingsActivity extends PreferenceActivity {
         return pref;
     }
 private static Preference createEmojiInfoPreference(Context context) {
-    final PreferenceCategory pref = new PreferenceCategory(context);
+    final Preference pref = new Preference(context);
     pref.setTitle(R.string.setting_emoji_info_title);
     pref.setSummary(R.string.setting_emoji_info_summary);
     pref.setSelectable(false);
+    pref.setShouldDisableDependents(false);
     return pref;
 }
 

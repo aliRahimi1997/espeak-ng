@@ -3,34 +3,27 @@ package com.reecedunn.espeak;
 import java.text.BreakIterator;
 import java.util.BitSet;
 
-/**
- * Highly optimized functionality to remove emoji characters and sequences
- * from text using a single-pass BitSet lookup and grapheme cluster iteration.
- */
 public final class EmojiProcessor {
 
-    // Covers the entire Unicode range (up to U+10FFFF) with ~137 KB memory footprint
     private static final BitSet EMOJI_BITSET = new BitSet(Character.MAX_CODE_POINT + 1);
 
     static {
-        // Unicode Emoji Ranges
-        addRange(0x1F600, 0x1F64F); // Emoticons
-        addRange(0x1F300, 0x1F5FF); // Misc Symbols and Pictographs
-        addRange(0x1F680, 0x1F6FF); // Transport and Map Symbols
-        addRange(0x1F780, 0x1F7FF); // Geometric Shapes Extended
-        addRange(0x1F900, 0x1F9FF); // Supplemental Symbols and Pictographs
-        addRange(0x1FA70, 0x1FAFF); // Symbols and Pictographs Extended-A
-        addRange(0x1FEB0, 0x1FEFF); // Symbols and Pictographs Extended-B
-        addRange(0x2600, 0x26FF);   // Misc Symbols
-        addRange(0x2700, 0x27BF);   // Dingbats
-        addRange(0x1F1E6, 0x1F1FF); // Regional Indicator Symbols (Flags)
-        addRange(0x1F170, 0x1F189); // Enclosed Alphanumeric Supplement
-        addRange(0x1F200, 0x1F2FF); // Enclosed Ideographic Supplement
-        addRange(0x1F000, 0x1F02F); // Mahjong Tiles
-        addRange(0x1F0A0, 0x1F0FF); // Playing Cards
-        addRange(0x2800, 0x28FF);   // Braille Patterns
+        addRange(0x1F600, 0x1F64F);
+        addRange(0x1F300, 0x1F5FF);
+        addRange(0x1F680, 0x1F6FF);
+        addRange(0x1F780, 0x1F7FF);
+        addRange(0x1F900, 0x1F9FF);
+        addRange(0x1FA70, 0x1FAFF);
+        addRange(0x1FEB0, 0x1FEFF);
+        addRange(0x2600, 0x26FF);
+        addRange(0x2700, 0x27BF);
+        addRange(0x1F1E6, 0x1F1FF);
+        addRange(0x1F170, 0x1F189);
+        addRange(0x1F200, 0x1F2FF);
+        addRange(0x1F000, 0x1F02F);
+        addRange(0x1F0A0, 0x1F0FF);
+        addRange(0x2800, 0x28FF);
 
-        // Individual Emoji Code Points (Comprehensive List)
         int[] singlePoints = {
             0x203C, 0x2049, 0x2139, 0x2194, 0x2195, 0x2196, 0x2197, 0x2198, 0x2199,
             0x21A9, 0x21AA, 0x231A, 0x231B, 0x2328, 0x23CF, 0x23E9, 0x23EA, 0x23EB,
@@ -51,9 +44,8 @@ public final class EmojiProcessor {
             EMOJI_BITSET.set(cp);
         }
 
-        // Keycap Combiners & Variation Selectors
-        EMOJI_BITSET.set(0x20E3); // Combining Enclosing Keycap
-        EMOJI_BITSET.set(0xFE0F); // Emoji Variation Selector-16
+        EMOJI_BITSET.set(0x20E3);
+        EMOJI_BITSET.set(0xFE0F);
     }
 
     private static void addRange(int start, int end) {
@@ -61,12 +53,14 @@ public final class EmojiProcessor {
     }
 
     private EmojiProcessor() {
-        // Prevent instantiation
     }
 
     public static boolean isEmoji(int codePoint) {
         if (codePoint < 0 || codePoint >= EMOJI_BITSET.size()) {
             return false;
+        }
+        if (codePoint >= 0x2800 && codePoint <= 0x28FF) {
+            return true;
         }
         return EMOJI_BITSET.get(codePoint);
     }
@@ -81,12 +75,18 @@ public final class EmojiProcessor {
         return false;
     }
 
-    /**
-     * Optimized single-pass emoji removal using BreakIterator graphemes.
-     */
     public static String removeEmojis(String text) {
         if (text == null || text.isEmpty()) return text;
 
+        String result = removeEmojisWithBreakIterator(text);
+        if (!result.equals(text)) {
+            return result;
+        }
+
+        return removeEmojisByCodePoint(text);
+    }
+
+    private static String removeEmojisWithBreakIterator(String text) {
         BreakIterator graphemes = BreakIterator.getCharacterInstance();
         graphemes.setText(text);
 
@@ -114,5 +114,17 @@ public final class EmojiProcessor {
         }
 
         return hasEmojiFound ? result.toString() : text;
+    }
+
+    private static String removeEmojisByCodePoint(String text) {
+        StringBuilder result = new StringBuilder(text.length());
+        for (int i = 0; i < text.length(); ) {
+            int cp = text.codePointAt(i);
+            if (!isEmoji(cp)) {
+                result.appendCodePoint(cp);
+            }
+            i += Character.charCount(cp);
+        }
+        return result.toString();
     }
 }

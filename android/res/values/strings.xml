@@ -109,4 +109,6 @@
 <string name="menu_email">Send email to support</string>
 <string name="chooser_telegram">Choose Telegram app</string>
 <string name="no_telegram_app">No Telegram app is installed on your device.</string>
+<string name="setting_emoji_filter_title">Read emojis</string>
+<string name="setting_emoji_filter_summary">When disabled, emojis and emoticons (such as smiley faces and hearts) are not spoken</string>
 </resources>

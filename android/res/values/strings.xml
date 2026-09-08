@@ -110,5 +110,7 @@
 <string name="chooser_telegram">Choose Telegram app</string>
 <string name="no_telegram_app">No Telegram app is installed on your device.</string>
 <string name="setting_emoji_filter_title">Read emojis</string>
-<string name="setting_emoji_filter_summary">When disabled, emojis and emoticons (such as smiley faces and hearts) are not spoken</string>
+<string name="setting_emoji_filter_summary">This option determines whether emojis and emoticons in the text (such as smiley face, heart, and crying face) are spoken during speech synthesis</string>
+<string name="setting_emoji_info_title">Note</string>
+<string name="setting_emoji_info_summary">If you encounter any issues with this feature, you can report them through the support option (Telegram) located at the bottom of this page as well as in the "More" menu on the main screen</string>
 </resources>

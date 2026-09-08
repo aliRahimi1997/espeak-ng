@@ -211,6 +211,7 @@ private static Preference createEmojiInfoPreference(Context context) {
     pref.setTitle(R.string.setting_emoji_info_title);
     pref.setSummary(R.string.setting_emoji_info_summary);
     pref.setSelectable(false);
+    pref.setEnabled(true);
     pref.setLayoutResource(R.layout.preference_info);
     return pref;
 }

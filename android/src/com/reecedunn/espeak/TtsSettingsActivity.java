@@ -208,9 +208,10 @@ public class TtsSettingsActivity extends PreferenceActivity {
     }
 private static Preference createEmojiInfoPreference(Context context) {
     final Preference pref = new Preference(context);
-    pref.setLayoutResource(R.layout.preference_info_only_text);
+    pref.setTitle(R.string.setting_emoji_info_title);
+    pref.setSummary(R.string.setting_emoji_info_summary);
     pref.setSelectable(false);
-    pref.setEnabled(true);
+    pref.setEnabled(true)
     return pref;
 }
     private static Preference createSeekBarPreference(Context context, SpeechSynthesis.Parameter parameter, String key, int titleRes) {

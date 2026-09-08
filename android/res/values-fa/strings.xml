@@ -79,4 +79,6 @@
 <string name="menu_email">ارسال ایمیل به پشتیبانی</string>
 <string name="chooser_telegram">انتخاب برنامه تلگرام</string>
 <string name="no_telegram_app">هیچ برنامه تلگرامی روی دستگاه شما نصب نیست.</string>
+<string name="setting_emoji_filter_title">خواندن شکلک‌ها</string>
+<string name="setting_emoji_filter_summary">در صورت غیرفعال بودن، شکلک‌ها و ایموجی‌های متن (مانند شکلک خندان و قلب) خوانده نمی‌شوند</string>
 </resources>

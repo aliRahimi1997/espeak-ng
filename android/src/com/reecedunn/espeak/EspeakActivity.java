@@ -15,7 +15,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
-public class eSpeakActivity extends Activity {
+public class EspeakActivity extends Activity {
 
     private static final String ACTION_TTS_SETTINGS = "com.android.settings.TTS_SETTINGS";
 

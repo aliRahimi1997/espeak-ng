@@ -10,20 +10,32 @@
         android:name="android.hardware.type.watch"
         android:required="false" />
 
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="tg" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" android:host="t.me" />
+        </intent>
+    </queries>
+
     <application
         android:name="com.reecedunn.espeak.EspeakApp"
         android:icon="@mipmap/icon"
         android:theme="@style/AppTheme"
-        android:label="@string/app_name" >
+        android:label="Espeak V" >
         <uses-library
             android:name="com.google.android.wearable"
             android:required="false" />
         <meta-data
             android:name="com.google.android.wearable.standalone"
             android:value="true" />
+
         <service
             android:name=".TtsService"
-            android:label="@string/app_name"
+            android:label="Espeak V"
             android:directBootAware="true"
             android:exported="true">
             <intent-filter>
@@ -39,7 +51,7 @@
 
         <activity
             android:name=".DownloadVoiceData"
-            android:theme="@style/AppTheme"
+            android:theme="@android:style/Theme.Dialog"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.speech.tts.engine.INSTALL_TTS_DATA" />
@@ -47,6 +59,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".CheckVoiceData"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
@@ -57,6 +70,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".GetSampleText"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
@@ -67,6 +81,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".TtsSettingsActivity"
             android:label="@string/tts_settings_label"
@@ -77,6 +92,18 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".eSpeakActivity"
+            android:label="Espeak V"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <activity-alias
             android:name=".WearLauncher"
             android:targetActivity=".TtsSettingsActivity"

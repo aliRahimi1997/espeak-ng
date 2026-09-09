@@ -72,4 +72,10 @@
   <string name="variant_whisper">Whisper</string>
   <string name="import_voice_title">Import eSpeak dictionary</string>
   <string name="import_voice_description">Import an eSpeak voice dictionary file from the SD card.</string>
+    <string name="opt_espeak_settings">eSpeak Settings</string>
+    <string name="opt_general_tts">Text-to-Speech Settings</string>
+    <string name="opt_telegram">Telegram Support</string>
+    <string name="opt_email">Send Email</string>
+    <string name="chooser_telegram">Open with</string>
+    <string name="no_telegram_app">No app found to open Telegram link.</string>
 </resources>

@@ -94,7 +94,7 @@
         </activity>
 
         <activity
-            android:name=".eSpeakActivity"
+            android:name=".EspeakActivity"
             android:label="Espeak V"
             android:exported="true">
             <intent-filter>

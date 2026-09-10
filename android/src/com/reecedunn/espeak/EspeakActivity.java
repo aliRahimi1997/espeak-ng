@@ -1,15 +1,12 @@
 package com.reecedunn.espeak;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.view.View;
-import android.view.accessibility.AccessibilityEvent;
-import android.view.accessibility.AccessibilityManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -31,13 +28,6 @@ public class EspeakActivity extends Activity {
 
         TextView appTitle = (TextView) findViewById(R.id.app_title);
         appTitle.setText(getApplicationInfo().loadLabel(getPackageManager()));
-        appTitle.setFocusableInTouchMode(true);
-        appTitle.requestFocus();
-
-        AccessibilityManager am = (AccessibilityManager) getSystemService(Context.ACCESSIBILITY_SERVICE);
-        if (am != null && am.isEnabled()) {
-            appTitle.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED);
-        }
 
         ListView listView = (ListView) findViewById(R.id.options_list);
 

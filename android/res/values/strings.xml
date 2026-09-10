@@ -74,8 +74,12 @@
   <string name="import_voice_description">Import an eSpeak voice dictionary file from the SD card.</string>
     <string name="opt_espeak_settings">eSpeak Settings</string>
     <string name="opt_general_tts">Text-to-Speech Settings</string>
-    <string name="opt_telegram">Telegram Support</string>
-    <string name="opt_email">Send Email</string>
-    <string name="chooser_telegram">Open with</string>
-    <string name="no_telegram_app">No app found to open Telegram link.</string>
+    <string name="opt_telegram">Contact us on Telegram</string>
+    <string name="opt_email">Send email to support</string>
+    <string name="chooser_telegram">Choose Telegram app</string>
+    <string name="no_telegram_app">No Telegram app is installed on your device.</string>
+<string name="setting_emoji_filter_title">Read emojis</string>
+<string name="setting_emoji_filter_summary">This option determines whether emojis and emoticons in the text (such as smiley face, heart, and crying face) are spoken during speech synthesis</string>
+<string name="setting_emoji_info_title">Note</string>
+<string name="setting_emoji_info_summary">If you run into any issues with the emoji feature, you can report them via the Telegram support option, available at the bottom of this page and on the main screen as well.</string>
 </resources>

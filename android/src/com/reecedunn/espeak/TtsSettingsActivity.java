@@ -36,6 +36,7 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceGroup;
 import android.preference.PreferenceManager;
+import android.view.View;
 
 import com.reecedunn.espeak.BuildConfig;
 import com.reecedunn.espeak.preference.ImportVoicePreference;
@@ -153,6 +154,40 @@ public class TtsSettingsActivity extends PreferenceActivity {
         }
     }
 
+    public static class InfoPreference extends Preference {
+        public InfoPreference(Context context) {
+            super(context);
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+
+            view.setFocusable(false);
+            view.setFocusableInTouchMode(false);
+            view.setClickable(false);
+            view.setLongClickable(false);
+            view.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+
+            View titleView = view.findViewById(android.R.id.title);
+            if (titleView != null) {
+                titleView.setFocusable(false);
+                titleView.setClickable(false);
+            }
+
+            View summaryView = view.findViewById(android.R.id.summary);
+            if (summaryView != null) {
+                summaryView.setFocusable(false);
+                summaryView.setClickable(false);
+            }
+        }
+
+        @Override
+        protected void onClick() {
+            // No-op: informational only.
+        }
+    }
+
     private static Preference createImportVoicePreference(Context context) {
         final String title = context.getString(R.string.import_voice_title);
 
@@ -241,11 +276,11 @@ public class TtsSettingsActivity extends PreferenceActivity {
     }
 
     private static Preference createEmojiInfoPreference(Context context) {
-        final Preference pref = new Preference(context);
+        final InfoPreference pref = new InfoPreference(context);
         pref.setTitle(R.string.setting_emoji_info_title);
         pref.setSummary(R.string.setting_emoji_info_summary);
+        pref.setPersistent(false);
         pref.setSelectable(false);
-        pref.setEnabled(true);
         return pref;
     }
 

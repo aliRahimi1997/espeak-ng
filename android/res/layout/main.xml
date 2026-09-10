@@ -5,6 +5,19 @@
     android:orientation="vertical"
     android:padding="8dp">
 
+    <TextView
+        android:id="@+id/app_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:clickable="false"
+        android:longClickable="false"
+        android:importantForAccessibility="yes" />
+
     <ListView
         android:id="@+id/options_list"
         android:layout_width="match_parent"

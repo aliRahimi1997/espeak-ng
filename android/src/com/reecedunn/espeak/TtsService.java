@@ -105,6 +105,15 @@ public class TtsService extends TextToSpeechService {
                 || CheckVoiceData.canUpgradeResources(storageContext)) {
             CheckVoiceData.extractVoiceData(storageContext);
         }
+
+        if (!mPreferences.contains(VoiceSettings.PREF_UNICODE_NORMALIZATION)) {
+            mPreferences.edit().putBoolean(VoiceSettings.PREF_UNICODE_NORMALIZATION, true).apply();
+        }
+
+        if (!mPreferences.contains(VoiceSettings.PREF_EMOJI_ENABLED)) {
+            mPreferences.edit().putBoolean(VoiceSettings.PREF_EMOJI_ENABLED, true).apply();
+        }
+
         initializeTtsEngine();
         super.onCreate();
     }
@@ -461,6 +470,13 @@ public class TtsService extends TextToSpeechService {
             normalization = UnicodeNormalization.normalize(text);
             if (normalization != null) {
                 text = normalization.text;
+            }
+        }
+
+        if (!settings.isEmojiReadingEnabled()) {
+            String filteredText = EmojiProcessor.removeEmojis(text);
+            if (filteredText != null && !filteredText.equals(text)) {
+                text = filteredText;
             }
         }
 

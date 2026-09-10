@@ -37,6 +37,7 @@ public class VoiceSettings {
     public static final String PREF_PUNCTUATION_CHARACTERS = "espeak_punctuation_characters";
     public static final String PREF_RATE_BOOST = "espeak_rate_boost";
     public static final String PREF_UNICODE_NORMALIZATION = "espeak_unicode_normalization";
+    public static final String PREF_EMOJI_ENABLED = "espeak_emoji_enabled";
     public static final int RATE_BOOST_MULTIPLIER = 3;
 
     public static final String PRESET_VARIANT = "variant";
@@ -181,5 +182,9 @@ public class VoiceSettings {
      */
     public boolean isUnicodeNormalizationEnabled() {
         return mPreferences.getBoolean(PREF_UNICODE_NORMALIZATION, true);
+    }
+
+    public boolean isEmojiReadingEnabled() {
+        return mPreferences.getBoolean(PREF_EMOJI_ENABLED, true);
     }
 }

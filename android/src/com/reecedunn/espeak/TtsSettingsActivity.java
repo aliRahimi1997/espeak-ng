@@ -120,6 +120,14 @@ public class TtsSettingsActivity extends PreferenceActivity {
             }
         }
 
+        if (!prefs.contains(VoiceSettings.PREF_UNICODE_NORMALIZATION)) {
+            editor.putBoolean(VoiceSettings.PREF_UNICODE_NORMALIZATION, true);
+        }
+
+        if (!prefs.contains(VoiceSettings.PREF_EMOJI_ENABLED)) {
+            editor.putBoolean(VoiceSettings.PREF_EMOJI_ENABLED, true);
+        }
+
         editor.commit();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
@@ -185,8 +193,59 @@ public class TtsSettingsActivity extends PreferenceActivity {
         pref.setTitle(R.string.setting_unicode_normalization);
         pref.setSummary(R.string.setting_unicode_normalization_summary);
         pref.setKey(VoiceSettings.PREF_UNICODE_NORMALIZATION);
-        pref.setDefaultValue(true);
-        pref.setPersistent(true);
+        pref.setPersistent(false);
+
+        if (storageContext == null) {
+            storageContext = EspeakApp.getStorageContext();
+        }
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(storageContext);
+        final boolean currentValue = prefs.getBoolean(VoiceSettings.PREF_UNICODE_NORMALIZATION, true);
+        pref.setChecked(currentValue);
+
+        pref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                final boolean isChecked = (Boolean) newValue;
+                prefs.edit().putBoolean(VoiceSettings.PREF_UNICODE_NORMALIZATION, isChecked).apply();
+                return true;
+            }
+        });
+
+        return pref;
+    }
+
+    private static Preference createEmojiFilterPreference(Context context) {
+        final CheckBoxPreference pref = new CheckBoxPreference(context);
+        pref.setTitle(R.string.setting_emoji_filter_title);
+        pref.setSummary(R.string.setting_emoji_filter_summary);
+        pref.setKey(VoiceSettings.PREF_EMOJI_ENABLED);
+        pref.setPersistent(false);
+
+        if (storageContext == null) {
+            storageContext = EspeakApp.getStorageContext();
+        }
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(storageContext);
+        final boolean currentValue = prefs.getBoolean(VoiceSettings.PREF_EMOJI_ENABLED, true);
+        pref.setChecked(currentValue);
+
+        pref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                final boolean isChecked = (Boolean) newValue;
+                prefs.edit().putBoolean(VoiceSettings.PREF_EMOJI_ENABLED, isChecked).apply();
+                return true;
+            }
+        });
+
+        return pref;
+    }
+
+    private static Preference createEmojiInfoPreference(Context context) {
+        final Preference pref = new Preference(context);
+        pref.setTitle(R.string.setting_emoji_info_title);
+        pref.setSummary(R.string.setting_emoji_info_summary);
+        pref.setSelectable(false);
+        pref.setEnabled(true);
         return pref;
     }
 
@@ -489,6 +548,8 @@ public class TtsSettingsActivity extends PreferenceActivity {
         group.addPreference(createVoiceVariantPreference(context, settings, R.string.espeak_variant));
         group.addPreference(createSpeakPunctuationPreference(context, settings, R.string.espeak_speak_punctuation));
         group.addPreference(createUnicodeNormalizationPreference(context));
+        group.addPreference(createEmojiFilterPreference(context));
+        group.addPreference(createEmojiInfoPreference(context));
 
         if (isWatch) {
             // One parameter per dialog on Wear. The rotating crown only

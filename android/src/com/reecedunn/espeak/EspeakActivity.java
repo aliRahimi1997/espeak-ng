@@ -1,15 +1,19 @@
 package com.reecedunn.espeak;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.view.View;
+import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -18,11 +22,22 @@ import java.util.List;
 public class EspeakActivity extends Activity {
 
     private static final String ACTION_TTS_SETTINGS = "com.android.settings.TTS_SETTINGS";
+    private static final String SUPPORT_EMAIL = "ali.c5468@gmail.com";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+
+        TextView appTitle = (TextView) findViewById(R.id.app_title);
+        appTitle.setText(getApplicationInfo().loadLabel(getPackageManager()));
+        appTitle.setFocusableInTouchMode(true);
+        appTitle.requestFocus();
+
+        AccessibilityManager am = (AccessibilityManager) getSystemService(Context.ACCESSIBILITY_SERVICE);
+        if (am != null && am.isEnabled()) {
+            appTitle.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED);
+        }
 
         ListView listView = (ListView) findViewById(R.id.options_list);
 
@@ -74,12 +89,11 @@ public class EspeakActivity extends Activity {
 
     private void sendEmail() {
         Intent intent = new Intent(Intent.ACTION_SENDTO);
-        intent.setData(Uri.parse("mailto:ali.c5468@gmail.com"));
-        intent.putExtra(Intent.EXTRA_SUBJECT, "eSpeak Support");
+        intent.setData(Uri.parse("mailto:" + SUPPORT_EMAIL));
         try {
             startActivity(intent);
         } catch (Exception e) {
-            Toast.makeText(this, "Please install an email client.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.no_email_app, Toast.LENGTH_SHORT).show();
         }
     }
 }

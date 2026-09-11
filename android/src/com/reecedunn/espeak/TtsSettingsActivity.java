@@ -1,21 +1,3 @@
-/*
- * Copyright (C) 2022 Beka Gozalishvili
- * Copyright (C) 2013 Reece H. Dunn
- * Copyright (C) 2011 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.reecedunn.espeak;
 
 import android.app.Activity;
@@ -145,7 +127,7 @@ public class TtsSettingsActivity extends PreferenceActivity {
     }
 
     @Override
-    public boolean isValidFragment(String fragmentName) {
+    protected boolean isValidFragment(String fragmentName) {
         return PrefsEspeakFragment.class.getName().equals(fragmentName);
     }
 
@@ -156,26 +138,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
 
             addPreferencesFromResource(R.xml.preferences);
             createPreferences(getActivity(), getPreferenceScreen());
-        }
-    }
-
-    public static class HeadingPreferenceCategory extends PreferenceCategory {
-        public HeadingPreferenceCategory(Context context) {
-            super(context);
-        }
-        public HeadingPreferenceCategory(Context context, AttributeSet attrs) {
-            super(context, attrs);
-        }
-        public HeadingPreferenceCategory(Context context, AttributeSet attrs, int defStyleAttr) {
-            super(context, attrs, defStyleAttr);
-        }
-
-        @Override
-        protected void onBindView(View view) {
-            super.onBindView(view);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                view.setAccessibilityHeading(true);
-            }
         }
     }
 
@@ -193,29 +155,21 @@ public class TtsSettingsActivity extends PreferenceActivity {
         protected void onBindView(View view) {
             super.onBindView(view);
 
-            view.setClickable(false);
-            view.setLongClickable(false);
-            view.setEnabled(false);
-            view.setFocusable(false);
+            view.setClickable(true);
+            view.setOnClickListener(null);
+            view.setBackgroundResource(0);
 
             view.setAccessibilityDelegate(new View.AccessibilityDelegate() {
                 @Override
                 public void onInitializeAccessibilityNodeInfo(View host, android.view.accessibility.AccessibilityNodeInfo info) {
                     super.onInitializeAccessibilityNodeInfo(host, info);
-                    info.setEnabled(true);
                     info.setClickable(false);
-                    info.setLongClickable(false);
-                    info.setVisibleToUser(true);
                     
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                         info.removeAction(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
                     }
                 }
             });
-        }
-
-        @Override
-        protected void onClick() {
         }
     }
 

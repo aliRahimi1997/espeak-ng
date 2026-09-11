@@ -78,7 +78,7 @@ public class TtsSettingsActivity extends PreferenceActivity {
 
         TextView settingsTitle = (TextView) findViewById(R.id.settings_title);
         if (settingsTitle != null) {
-            settingsTitle.setText(R.string.espeak_settings);
+            settingsTitle.setText(R.string.tts_settings_label);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 settingsTitle.setAccessibilityHeading(true);
             }

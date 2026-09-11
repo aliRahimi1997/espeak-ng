@@ -81,6 +81,6 @@
 <string name="setting_emoji_filter_title">Read emojis</string>
 <string name="setting_emoji_filter_summary">This option determines whether emojis and emoticons in the text (such as smiley face, heart, and crying face) are spoken during speech synthesis</string>
 <string name="setting_emoji_info_title">Note</string>
-<string name="setting_emoji_info_summary">If you run into any issues with the emoji feature, you can report them via the Telegram support option, available at the bottom of this page and on the main screen as well.</string>
+<string name="setting_emoji_info_summary">If you run into any issues with the emoji feature, you can report them through the contact options on the main screen.</string>
 <string name="no_email_app">Please install an email client.</string>
 </resources>

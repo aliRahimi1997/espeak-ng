@@ -363,7 +363,9 @@ public class TtsSettingsActivity extends PreferenceActivity {
         VoiceSettings settings = new VoiceSettings(PreferenceManager.getDefaultSharedPreferences(storageContext), engine);
 
         if (!isWatch) {
-            group.addPreference(createImportVoicePreference(context));
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                group.addPreference(createImportVoicePreference(context));
+            }
         }
         
         group.addPreference(createVoiceVariantPreference(context, settings, R.string.espeak_variant));

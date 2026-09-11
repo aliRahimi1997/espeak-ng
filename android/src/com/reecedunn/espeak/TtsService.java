@@ -49,12 +49,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Implements the eSpeak engine as a {@link TextToSpeechService}.
- *
- * @author msclrhd@gmail.com (Reece H. Dunn)
- * @author alanv@google.com (Alan Viverette)
- */
 @SuppressLint("NewApi")
 public class TtsService extends TextToSpeechService {
     private static final String TAG = TtsService.class.getSimpleName();
@@ -64,18 +58,10 @@ public class TtsService extends TextToSpeechService {
     private SpeechSynthesis mEngine;
     private SynthesisCallback mCallback;
 
-    /** Text handed to eSpeak for the current request. */
     private String mSynthText;
-    /** Where {@link #mSynthText} starts within the text the caller supplied. */
     private int mSynthTextOffset;
-    /**
-     * Offset map back to the caller's text when {@link #mSynthText} is a
-     * normalized copy of it, or null when they are the same string.
-     */
     private UnicodeNormalization.Result mSynthNormalization;
-    /** Number of code points in {@link #mSynthText}. */
     private int mSynthTextCodePoints;
-    /** Anchor for incremental code point to UTF-16 index conversion. */
     private int mAnchorCodePoint;
     private int mAnchorOffset;
 
@@ -84,15 +70,6 @@ public class TtsService extends TextToSpeechService {
     protected Voice mMatchingVoice = null;
 
     private SharedPreferences mPreferences;
-    private final SharedPreferences.OnSharedPreferenceChangeListener mOnPreferencesChanged =
-            new SharedPreferences.OnSharedPreferenceChangeListener() {
-                @Override
-                public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                    if (LanguageSettings.PREF_SUPPORTED_LANGUAGES.equals(key)) {
-                        rebuildAvailableVoices();
-                    }
-                }
-            };
 
     @Override
     public void onCreate() {
@@ -100,7 +77,7 @@ public class TtsService extends TextToSpeechService {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
             storageContext.moveSharedPreferencesFrom(this, this.getPackageName() + "_preferences");
         mPreferences = PreferenceManager.getDefaultSharedPreferences(storageContext);
-        mPreferences.registerOnSharedPreferenceChangeListener(mOnPreferencesChanged);
+        
         if (!CheckVoiceData.hasBaseResources(storageContext)
                 || CheckVoiceData.canUpgradeResources(storageContext)) {
             CheckVoiceData.extractVoiceData(storageContext);
@@ -121,14 +98,8 @@ public class TtsService extends TextToSpeechService {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (mPreferences != null) {
-            mPreferences.unregisterOnSharedPreferenceChangeListener(mOnPreferencesChanged);
-        }
     }
 
-    /**
-     * Sets up the native eSpeak engine.
-     */
     private void initializeTtsEngine() {
         if (mEngine != null) {
             mEngine.stop();
@@ -147,7 +118,6 @@ public class TtsService extends TextToSpeechService {
 
     @Override
     protected String[] onGetLanguage() {
-        // This is used to specify the language requested from GetSampleText.
         final Voice voice;
         synchronized (mAvailableVoices) {
             voice = mMatchingVoice;
@@ -220,9 +190,6 @@ public class TtsService extends TextToSpeechService {
     protected int onIsLanguageAvailable(String language, String country, String variant) {
         final int result = findVoice(language, country, variant).second;
         if (result == TextToSpeech.LANG_NOT_SUPPORTED) {
-            // When the requested language is filtered out but other voices are
-            // available, report the language as available so that screen readers
-            // (e.g. Jieshuo) don't skip this engine entirely.
             synchronized (mAvailableVoices) {
                 if (!mAvailableVoices.isEmpty()) {
                     return TextToSpeech.LANG_AVAILABLE;
@@ -242,8 +209,6 @@ public class TtsService extends TextToSpeechService {
             return match.second;
         }
         if (match.second == TextToSpeech.LANG_NOT_SUPPORTED) {
-            // Fall back to a previously selected or available voice so that
-            // screen readers requesting the system language still get speech.
             synchronized (mAvailableVoices) {
                 if (mMatchingVoice != null) {
                     return TextToSpeech.LANG_AVAILABLE;
@@ -326,21 +291,15 @@ public class TtsService extends TextToSpeechService {
             case TextToSpeech.LANG_MISSING_DATA:
                 return TextToSpeech.ERROR;
             case TextToSpeech.LANG_NOT_SUPPORTED:
-                // fall back to a previously selected or available voice instead of failing.
-                // This allows screen readers that request the system language (e.g. Jieshuo)
-                // to still work when the user has selected only other languages.
                 synchronized (mAvailableVoices) {
-                    // Prefer reusing the last matching voice if one is already selected.
                     if (mMatchingVoice != null) {
                         return TextToSpeech.SUCCESS;
                     }
-                    // Otherwise, pick an arbitrary available voice if any exist.
                     if (!mAvailableVoices.isEmpty()) {
                         mMatchingVoice = mAvailableVoices.values().iterator().next();
                         return TextToSpeech.SUCCESS;
                     }
                 }
-                // No previous voice and no available voices to fall back to.
                 return TextToSpeech.ERROR;
         }
         return TextToSpeech.SUCCESS;
@@ -353,38 +312,15 @@ public class TtsService extends TextToSpeechService {
                     && onLoadVoice(name) == TextToSpeech.SUCCESS) {
                 return TextToSpeech.SUCCESS;
             }
-            // Deliberately fall through when the named voice is unknown rather
-            // than returning its error. The framework attaches a voice name to
-            // every request on API 21+ -- including the system default one when
-            // the client never picked a voice itself -- so a name that has been
-            // filtered out of the user's language selection would otherwise
-            // fail every request and make selectLanguageWithFallback() below
-            // unreachable. The name is a hint; the language cascade decides.
         }
         return selectLanguageWithFallback(request.getLanguage(), request.getCountry(), request.getVariant());
     }
 
-    /**
-     * Reports a synthesis failure to the caller.
-     *
-     * <p>The framework only dispatches an error once {@code done()} follows, and
-     * treats a request that returns without calling either as a successful empty
-     * utterance, which hides failures from screen readers.
-     */
     private void reportError(SynthesisCallback callback, int errorCode) {
-        // error(int) has been available since API 21, which is minSdk here, so
-        // the code always reaches the caller.
         callback.error(errorCode);
         callback.done();
     }
 
-    /**
-     * Converts a 0-based code point index within {@link #mSynthText} into the
-     * UTF-16 index that {@link SynthesisCallback#rangeStart} expects.
-     *
-     * <p>Walks forward from the previous result, since word events arrive in text
-     * order; the occasional out-of-order event falls back to a full rescan.
-     */
     private int codePointToOffset(int codePointIndex) {
         if (codePointIndex <= 0) {
             return 0;
@@ -438,17 +374,10 @@ public class TtsService extends TextToSpeechService {
         int textOffset = 0;
         if (text.startsWith("<?xml"))
         {
-            // eSpeak does not recognise/skip "<?...?>" preprocessing tags,
-            // so need to remove these before passing to synthesize. A
-            // declaration missing its "?>" is left alone rather than having its
-            // first character eaten by a -1 index.
             final int terminator = text.indexOf("?>");
             if (terminator >= 0)
             {
                 final int declarationEnd = terminator + 2;
-                // Track what was dropped from the front, so that word boundaries can
-                // be reported against the text the caller actually passed in. This
-                // mirrors what String.trim() strips (anything <= ' ').
                 textOffset = declarationEnd;
                 while (textOffset < text.length() && text.charAt(textOffset) <= ' ') {
                     textOffset++;
@@ -459,10 +388,6 @@ public class TtsService extends TextToSpeechService {
 
         final VoiceSettings settings = new VoiceSettings(PreferenceManager.getDefaultSharedPreferences(storageContext), mEngine);
 
-        // Detect SSML before normalizing. Real markup is ASCII, which NFKC
-        // leaves untouched, but normalization can turn lookalikes such as a
-        // fullwidth "＜ｓｐｅａｋ" into "<speak", and plain text must not
-        // switch into SSML parsing because of that.
         final boolean isSsml = text.startsWith("<speak");
 
         UnicodeNormalization.Result normalization = null;
@@ -511,16 +436,11 @@ public class TtsService extends TextToSpeechService {
         synchronized (mAvailableVoices) {
             mAvailableVoices.clear();
             List<Voice> voices = mAllVoices;
-            if (mPreferences != null) {
-                voices = LanguageSettings.filterVoices(mAllVoices, mPreferences);
-            }
             for (Voice voice : voices) {
                 mAvailableVoices.put(voice.name, voice);
             }
             if (DEBUG) {
-                Set<String> selected = LanguageSettings.getSelectedLanguages(mPreferences);
-                Log.i(TAG, "Rebuilt voices: selected=" + (selected == null ? "ALL" : selected.size()) +
-                        ", exposed=" + mAvailableVoices.size());
+                Log.i(TAG, "Rebuilt voices: exposed=" + mAvailableVoices.size());
             }
             if (mMatchingVoice != null && !mAvailableVoices.containsKey(mMatchingVoice.name)) {
                 mMatchingVoice = null;
@@ -528,9 +448,6 @@ public class TtsService extends TextToSpeechService {
         }
     }
 
-    /**
-     * Pipes synthesizer output from native eSpeak to an {@link AudioTrack}.
-     */
     private final SpeechSynthesis.SynthReadyCallback mSynthCallback = new SynthReadyCallback() {
         @Override
         public void onSynthDataReady(byte[] audioData) {
@@ -547,11 +464,6 @@ public class TtsService extends TextToSpeechService {
                 final int bytesToWrite = Math.min(maxBytesToCopy, (audioData.length - offset));
                 if (mCallback.audioAvailable(audioData, offset, bytesToWrite)
                         != TextToSpeech.SUCCESS) {
-                    // The framework has stopped accepting audio for this
-                    // request, so the rest of the buffer has nowhere to go.
-                    // A stop normally reaches the engine through onStop();
-                    // stopping here as well covers a failure that arrives
-                    // without one.
                     mEngine.stop();
                     return;
                 }
@@ -566,20 +478,14 @@ public class TtsService extends TextToSpeechService {
 
         @Override
         public void onSynthWordBoundary(int textPosition, int textLength, int markerInFrames) {
-            // rangeStart() is API 26; below that the framework has no way to
-            // deliver word boundaries to the caller.
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || mSynthText == null) {
                 return;
             }
 
-            // eSpeak counts code points from 1, rangeStart() wants 0-based UTF-16
-            // indices into the text the caller supplied.
             final int wordStart = textPosition - 1;
             int start = codePointToOffset(wordStart);
             int end = codePointToOffset(wordStart + Math.max(textLength, 0));
             if (mSynthNormalization != null) {
-                // The engine spoke normalized text; report the range against
-                // the original so highlighting tracks the caller's string.
                 start = mSynthNormalization.toOriginalOffset(start);
                 end = mSynthNormalization.toOriginalOffset(end);
             }

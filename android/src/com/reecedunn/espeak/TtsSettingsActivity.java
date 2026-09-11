@@ -79,6 +79,9 @@ public class TtsSettingsActivity extends PreferenceActivity {
         TextView settingsTitle = (TextView) findViewById(R.id.settings_title);
         if (settingsTitle != null) {
             settingsTitle.setText(getApplicationInfo().loadLabel(getPackageManager()));
+            settingsTitle.setClickable(false);
+            settingsTitle.setEnabled(true);
+            settingsTitle.setFocusable(true);
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
@@ -142,6 +145,11 @@ public class TtsSettingsActivity extends PreferenceActivity {
             addPreferencesFromResource(R.xml.preferences);
             createPreferences(TtsSettingsActivity.this, getPreferenceScreen());
         }
+    }
+
+    @Override
+    public boolean isValidFragment(String fragmentName) {
+        return PrefsEspeakFragment.class.getName().equals(fragmentName);
     }
 
     public static class PrefsEspeakFragment extends PreferenceFragment {

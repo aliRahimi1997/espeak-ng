@@ -166,8 +166,7 @@ public class TtsSettingsActivity extends PreferenceActivity {
             }
         }
     }
-
-    public static class InfoPreference extends Preference {
+public static class InfoPreference extends Preference {
         public InfoPreference(Context context) {
             super(context);
         }
@@ -181,30 +180,26 @@ public class TtsSettingsActivity extends PreferenceActivity {
         protected void onBindView(View view) {
             super.onBindView(view);
 
-            view.setFocusable(false);
-            view.setFocusableInTouchMode(false);
-            view.setClickable(false);
-            view.setLongClickable(false);
-            view.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+            view.setBackgroundResource(0);
 
-            View titleView = view.findViewById(android.R.id.title);
-            if (titleView != null) {
-                titleView.setFocusable(false);
-                titleView.setClickable(false);
-            }
-
-            View summaryView = view.findViewById(android.R.id.summary);
-            if (summaryView != null) {
-                summaryView.setFocusable(false);
-                summaryView.setClickable(false);
-            }
+            view.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+                @Override
+                public void onInitializeAccessibilityNodeInfo(View host, android.view.accessibility.AccessibilityNodeInfo info) {
+                    super.onInitializeAccessibilityNodeInfo(host, info);
+                    info.setEnabled(true);
+                    info.setClickable(false);
+                    
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        info.removeAction(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
+                    }
+                }
+            });
         }
 
         @Override
         protected void onClick() {
         }
     }
-
     private static Preference createImportVoicePreference(Context context) {
         final String title = context.getString(R.string.import_voice_title);
 
@@ -297,7 +292,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
         pref.setTitle(R.string.setting_emoji_info_title);
         pref.setSummary(R.string.setting_emoji_info_summary);
         pref.setPersistent(false);
-        pref.setSelectable(false);
         return pref;
     }
 

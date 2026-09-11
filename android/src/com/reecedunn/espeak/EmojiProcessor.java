@@ -8,6 +8,7 @@ public final class EmojiProcessor {
     private static final BitSet EMOJI_BITSET = new BitSet(Character.MAX_CODE_POINT + 1);
 
     static {
+        // ۱. محدوده‌های اصلی و پایه
         addRange(0x1F600, 0x1F64F);
         addRange(0x1F300, 0x1F5FF);
         addRange(0x1F680, 0x1F6FF);
@@ -24,28 +25,40 @@ public final class EmojiProcessor {
         addRange(0x1F0A0, 0x1F0FF);
         addRange(0x2800, 0x28FF);
 
+        // ۲. محدوده‌های تکمیلی، هندسی و ایمن اضافه شده
+        addRange(0x2044, 0x20BF);   // نمادهای پولی و نقطه‌گذاری
+        addRange(0x2190, 0x21FF);   // پیکان‌ها و فلش‌ها
+        addRange(0x25A0, 0x25FF);   // اشکال هندسی
+        addRange(0x2B00, 0x2BFF);   // نمادهای متفرقه و پیکان‌ها
+        addRange(0x1F18E, 0x1F19A); // حروف و نمادهای محصور در کادر
+        addRange(0x3030, 0x303F);   // نمادهای CJK
+        addRange(0x2100, 0x214F);   // نمادهای شبیه به حرف (بدون کاراکترهای C1)
+        addRange(0x2460, 0x24FF);   // حروف و اعداد محصور
+        addRange(0x2200, 0x22FF);   // عملگرهای ریاضی
+        addRange(0x2A00, 0x2AFF);   // عملگرهای ریاضی تکمیلی
+        addRange(0x2300, 0x23FF);   // نمادهای فنی متفرقه
+        addRange(0x2934, 0x2935);   // پیکان‌های خمیده مکمل
+
+        // ۳. کاراکترهای تگ (Tag Characters) برای پرچم‌های زیربخش
+        addRange(0xE0020, 0xE007F);
+
+        // ۴. کاراکترهای تکی استثنایی
         int[] singlePoints = {
-            0x203C, 0x2049, 0x2139, 0x2194, 0x2195, 0x2196, 0x2197, 0x2198, 0x2199,
-            0x21A9, 0x21AA, 0x231A, 0x231B, 0x2328, 0x23CF, 0x23E9, 0x23EA, 0x23EB,
-            0x23EC, 0x23ED, 0x23EE, 0x23EF, 0x23F0, 0x23F1, 0x23F2, 0x23F3, 0x25A1,
-            0x25AA, 0x25AB, 0x25B6, 0x25C0, 0x25FB, 0x25FC, 0x25FD, 0x25FE, 0x260E,
-            0x2611, 0x2614, 0x2615, 0x2618, 0x261D, 0x2620, 0x2622, 0x2623, 0x2626,
-            0x262A, 0x262E, 0x262F, 0x2638, 0x2639, 0x263A, 0x2640, 0x2642, 0x2648,
-            0x2649, 0x264A, 0x264B, 0x264C, 0x264D, 0x264E, 0x264F, 0x2650, 0x2651,
-            0x2652, 0x2653, 0x2660, 0x2663, 0x2665, 0x2666, 0x2668, 0x267B, 0x267F,
-            0x2692, 0x2693, 0x2694, 0x2696, 0x2697, 0x2699, 0x269B, 0x269C, 0x26A0,
-            0x26A1, 0x26AA, 0x26AB, 0x26B0, 0x26B1, 0x26BD, 0x26BE, 0x26C4, 0x26C5,
-            0x26CE, 0x26D4, 0x26EA, 0x26F2, 0x26F3, 0x26F5, 0x26FA, 0x26FD, 0x2705,
-            0x270A, 0x270B, 0x2728, 0x274C, 0x274E, 0x2753, 0x2754, 0x2755, 0x2757,
-            0x2795, 0x2796, 0x2797, 0x27B0, 0x27BF, 0x2B50, 0x2B55, 0x3297, 0x3299,
-            0x1F004, 0x1F0CF
+            0x203C, // علامت تعجب دوتایی
+            0x207B, // منفی زبرنوشت
+            0x3297, // دکمه تبریک ژاپنی
+            0x3299  // دکمه راز ژاپنی
         };
+        
         for (int cp : singlePoints) {
             EMOJI_BITSET.set(cp);
         }
 
-        EMOJI_BITSET.set(0x20E3);
-        EMOJI_BITSET.set(0xFE0F);
+        // ۵. کاراکترهای اتصال‌دهنده و انتخاب‌گر سبک (نامرئی)
+        EMOJI_BITSET.set(0x200D); // اتصال‌دهنده با عرض صفر (ZWJ)
+        EMOJI_BITSET.set(0xFE0E); // انتخاب‌گر سبک متن
+        EMOJI_BITSET.set(0xFE0F); // انتخاب‌گر سبک ایموجی
+        EMOJI_BITSET.set(0x20E3); // کادر محصورکننده کلیدها
     }
 
     private static void addRange(int start, int end) {
@@ -59,6 +72,7 @@ public final class EmojiProcessor {
         if (codePoint < 0 || codePoint >= EMOJI_BITSET.size()) {
             return false;
         }
+        // استثنای محدوده بریل
         if (codePoint >= 0x2800 && codePoint <= 0x28FF) {
             return true;
         }

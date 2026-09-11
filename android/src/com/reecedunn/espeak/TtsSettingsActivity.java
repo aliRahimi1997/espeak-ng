@@ -78,10 +78,7 @@ public class TtsSettingsActivity extends PreferenceActivity {
 
         TextView settingsTitle = (TextView) findViewById(R.id.settings_title);
         if (settingsTitle != null) {
-            settingsTitle.setText(R.string.tts_settings_label);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                settingsTitle.setAccessibilityHeading(true);
-            }
+            settingsTitle.setText(getApplicationInfo().loadLabel(getPackageManager()));
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
@@ -191,10 +188,10 @@ public class TtsSettingsActivity extends PreferenceActivity {
         protected void onBindView(View view) {
             super.onBindView(view);
 
-            view.setBackgroundResource(0);
             view.setClickable(false);
             view.setLongClickable(false);
-            view.setEnabled(true);
+            view.setEnabled(false);
+            view.setFocusable(false);
 
             view.setAccessibilityDelegate(new View.AccessibilityDelegate() {
                 @Override
@@ -203,6 +200,7 @@ public class TtsSettingsActivity extends PreferenceActivity {
                     info.setEnabled(true);
                     info.setClickable(false);
                     info.setLongClickable(false);
+                    info.setVisibleToUser(true);
                     
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                         info.removeAction(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);

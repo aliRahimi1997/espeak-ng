@@ -8,14 +8,14 @@
   <string name="setting_default_pitch">زیر و بمی پیش‌فرض</string>
   <!--Source: Preference title.
         Description: Title for the preference that controls default speech rate.-->
-  <string name="setting_default_rate">تقویت‌کننده سرعت گفتگو</string>
+  <string name="setting_default_rate">سرعت گفتار</string>
   <!--Source: Dialog text.
         Description: Status message shown when installing voice data.-->
   <string name="installing_voice_data">در حال نصب داده‌های صوتی...</string>
   <!--Source: Spoken aloud.
         Description: Sample text spoken aloud when the user is trying out a language.-->
   <string name="sample_text">این یک نمونه از نوشتار گفته شده در %s است</string>
-  <string name="espeak_volume">حجم صدا</string>
+  <string name="espeak_volume">میزان صدا</string>
   <string name="formatter_wpm">%s کلمه بر دقیقه</string>
   <string name="formatter_percentage">%s%%</string>
   <string name="resetToDefault">تغییر به حالت پیشفرض</string>
@@ -39,4 +39,19 @@
   <string name="variant_whisper">پچ پچ</string>
   <string name="import_voice_title">افزودن دیکشنری eSpeak</string>
   <string name="import_voice_description">افزودن یک فایل دیکشنری صوتی eSpeak از کارت حافظه</string>
+<string name="opt_espeak_settings">تنظیمات eSpeak</string>
+<string name="opt_general_tts">تنظیمات تبدیل متن به گفتار</string>
+<string name="opt_telegram">تماس با ما در تلگرام</string>
+<string name="opt_email">ارسال ایمیل به پشتیبانی</string>
+<string name="chooser_telegram">انتخاب برنامه تلگرام</string>
+<string name="no_telegram_app">هیچ برنامه تلگرامی روی دستگاه شما نصب نیست.</string>
+<string name="setting_emoji_filter_title">خواندن ایموجی‌ها</string>
+<string name="setting_emoji_filter_summary">این گزینه تعیین می‌کند که آیا ایموجی‌ها و شکلک‌های موجود در متن (مانند شکلک خندان، قلب و شکلک گریان) هنگام تبدیل متن به گفتار خوانده شوند یا نه</string>
+<string name="setting_emoji_info_title">توجه</string>
+<string name="setting_emoji_info_summary">اگر با قابلیت ایموجی مشکلی داشتید، می‌توانید از طریق راه‌های ارتباطی موجود در صفحه اصلی گزارش دهید.</string>
+<string name="no_email_app">لطفاً یک برنامه ایمیل نصب کنید.</string>
+<string name="setting_rate_boost">افزایش سرعت (۳ برابر)</string>
+<string name="espeak_voice_settings">تنظیمات صدا</string>
+<string name="setting_unicode_normalization">نرمال‌سازی یونیکد</string>
+<string name="setting_unicode_normalization_summary">خواندن متن‌های یونیکد تزئینی مانند فونت‌های خاص شبکه‌های اجتماعی به‌صورت کلمات عادی</string>
 </resources>

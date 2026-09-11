@@ -39,6 +39,7 @@ import android.preference.PreferenceGroup;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.view.View;
+import android.widget.TextView;
 
 import com.reecedunn.espeak.BuildConfig;
 import com.reecedunn.espeak.preference.ImportVoicePreference;
@@ -73,6 +74,15 @@ public class TtsSettingsActivity extends PreferenceActivity {
     @SuppressWarnings("deprecation")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_tts_settings);
+
+        TextView settingsTitle = (TextView) findViewById(R.id.settings_title);
+        if (settingsTitle != null) {
+            settingsTitle.setText(R.string.espeak_settings);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                settingsTitle.setAccessibilityHeading(true);
+            }
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
         {
@@ -166,7 +176,8 @@ public class TtsSettingsActivity extends PreferenceActivity {
             }
         }
     }
-public static class InfoPreference extends Preference {
+
+    public static class InfoPreference extends Preference {
         public InfoPreference(Context context) {
             super(context);
         }
@@ -181,6 +192,9 @@ public static class InfoPreference extends Preference {
             super.onBindView(view);
 
             view.setBackgroundResource(0);
+            view.setClickable(false);
+            view.setLongClickable(false);
+            view.setEnabled(true);
 
             view.setAccessibilityDelegate(new View.AccessibilityDelegate() {
                 @Override
@@ -188,6 +202,7 @@ public static class InfoPreference extends Preference {
                     super.onInitializeAccessibilityNodeInfo(host, info);
                     info.setEnabled(true);
                     info.setClickable(false);
+                    info.setLongClickable(false);
                     
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                         info.removeAction(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
@@ -200,6 +215,7 @@ public static class InfoPreference extends Preference {
         protected void onClick() {
         }
     }
+
     private static Preference createImportVoicePreference(Context context) {
         final String title = context.getString(R.string.import_voice_title);
 

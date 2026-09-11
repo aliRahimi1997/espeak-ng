@@ -79,9 +79,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
         TextView settingsTitle = (TextView) findViewById(R.id.settings_title);
         if (settingsTitle != null) {
             settingsTitle.setText(getApplicationInfo().loadLabel(getPackageManager()));
-            settingsTitle.setClickable(false);
-            settingsTitle.setEnabled(true);
-            settingsTitle.setFocusable(true);
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
@@ -137,7 +134,7 @@ public class TtsSettingsActivity extends PreferenceActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
         {
             getFragmentManager().beginTransaction().replace(
-                    android.R.id.content,
+                    R.id.preference_container,
                     new PrefsEspeakFragment()).commit();
         }
         else

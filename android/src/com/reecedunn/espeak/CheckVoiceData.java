@@ -27,9 +27,7 @@ package com.reecedunn.espeak;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech.Engine;
 import android.util.Log;
 
@@ -43,14 +41,12 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class CheckVoiceData extends Activity {
     private static final String TAG = "eSpeakTTS";
 
-    /** Resources required for eSpeak to run correctly. */
     private static final String[] BASE_RESOURCES = {
         "version",
         "intonations",
@@ -145,7 +141,6 @@ public class CheckVoiceData extends Activity {
         super.onCreate(savedInstanceState);
 
         Context storageContext = EspeakApp.getStorageContext();
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(storageContext);
         ArrayList<String> availableLanguages = new ArrayList<String>();
         ArrayList<String> unavailableLanguages = new ArrayList<String>();
 
@@ -159,10 +154,10 @@ public class CheckVoiceData extends Activity {
         }
 
         final SpeechSynthesis engine = new SpeechSynthesis(storageContext, mSynthReadyCallback);
-        final List<Voice> voices = LanguageSettings.filterVoices(engine.getAvailableVoices(), prefs);
+        final List<Voice> voices = engine.getAvailableVoices();
+        
         if (BuildConfig.DEBUG) {
-            Set<String> selected = LanguageSettings.getSelectedLanguages(prefs);
-            Log.i(TAG, "CheckVoiceData: selected=" + (selected == null ? "ALL" : selected.size()) + ", exposing=" + voices.size());
+            Log.i(TAG, "CheckVoiceData: exposing=" + voices.size());
         }
 
         for (Voice voice : voices) {

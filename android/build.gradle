@@ -20,15 +20,6 @@ repositories {
 }
 
 
-dependencies {
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'org.hamcrest:hamcrest:2.2'
-    androidTestImplementation 'org.hamcrest:hamcrest-core:2.2'
-    androidTestImplementation 'androidx.test:runner:1.6.2'
-    androidTestImplementation 'androidx.test:core:1.6.1'
-    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
-}
-
 android {
     compileSdk = 36
     ndkVersion = "29.0.14206865"
@@ -39,11 +30,11 @@ android {
     }
 
     defaultConfig {
+        applicationId "com.rahimi.espeak"
         minSdk = 21
         targetSdk = 36
         versionCode = 23
         versionName = "1.53.0"
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         externalNativeBuild {
             cmake {
@@ -65,10 +56,6 @@ android {
             manifest.srcFile('AndroidManifest.xml')
             java.srcDirs = ['src']
             res.srcDirs = ['res']
-        }
-        androidTest {
-            java.srcDirs = ['eSpeakTests/src']
-            res.srcDirs = ['eSpeakTests/res']
         }
     }
 

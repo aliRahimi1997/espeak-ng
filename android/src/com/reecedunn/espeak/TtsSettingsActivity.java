@@ -1,88 +1,48 @@
-/*
- * Copyright (C) 2022 Beka Gozalishvili
- * Copyright (C) 2013 Reece H. Dunn
- * Copyright (C) 2011 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.reecedunn.espeak;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.util.Log;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
-import android.preference.MultiSelectListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceGroup;
 import android.preference.PreferenceManager;
+import android.view.View;
 
-import com.reecedunn.espeak.BuildConfig;
 import com.reecedunn.espeak.preference.ImportVoicePreference;
 import com.reecedunn.espeak.preference.SeekBarPreference;
 import com.reecedunn.espeak.preference.SpeakPunctuationPreference;
-import com.reecedunn.espeak.preference.SupportedLanguagesPreference;
 import com.reecedunn.espeak.preference.VoiceVariantPreference;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.Stack;
 
 public class TtsSettingsActivity extends PreferenceActivity {
 
     private static Context storageContext;
     private static final String TAG = TtsSettingsActivity.class.getSimpleName();
 
-    /**
-     * Identifies the combined voice-parameters preference. Nothing is stored
-     * under it -- the preference writes the individual VoiceSettings keys --
-     * but a Preference without a key cannot save its instance state, so its
-     * dialog would not survive a rotation.
-     */
     private static final String PREF_VOICE_PARAMETERS = "espeak_voice_parameters";
-
-    private static final java.util.HashMap<String, LangInfo> sLangInfo = new java.util.HashMap<String, LangInfo>();
 
     @Override
     @SuppressWarnings("deprecation")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_tts_settings);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
         {
             PreferenceManager preferenceManager = getPreferenceManager();
             preferenceManager.setStorageDeviceProtected ();
         }
-        // Migrate old eyes-free settings to the new settings:
 
         storageContext = EspeakApp.getStorageContext();
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(storageContext);
@@ -90,7 +50,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
 
         String pitch = prefs.getString(VoiceSettings.PREF_PITCH, null);
         if (pitch == null) {
-            // Try the old eyes-free setting:
             pitch = prefs.getString(VoiceSettings.PREF_DEFAULT_PITCH, "100");
             int pitchValue = Integer.parseInt(pitch) / 2;
             editor.putString(VoiceSettings.PREF_PITCH, Integer.toString(pitchValue));
@@ -98,7 +57,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
 
         String rate = prefs.getString(VoiceSettings.PREF_RATE, null);
         if (rate == null) {
-            // Try the old eyes-free setting:
             SpeechSynthesis engine = new SpeechSynthesis(storageContext, null);
             int defaultValue = engine.Rate.getDefaultValue();
             int maxValue = engine.Rate.getMaxValue();
@@ -120,12 +78,24 @@ public class TtsSettingsActivity extends PreferenceActivity {
             }
         }
 
+        if (!prefs.contains(VoiceSettings.PREF_UNICODE_NORMALIZATION)) {
+            editor.putBoolean(VoiceSettings.PREF_UNICODE_NORMALIZATION, true);
+        }
+
+        if (!prefs.contains(VoiceSettings.PREF_EMOJI_ENABLED)) {
+            editor.putBoolean(VoiceSettings.PREF_EMOJI_ENABLED, true);
+        }
+
+        if (!prefs.contains(VoiceSettings.PREF_SPEAK_DIGITS)) {
+            editor.putBoolean(VoiceSettings.PREF_SPEAK_DIGITS, false);
+        }
+
         editor.commit();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
         {
             getFragmentManager().beginTransaction().replace(
-                    android.R.id.content,
+                    R.id.preference_container,
                     new PrefsEspeakFragment()).commit();
         }
         else
@@ -135,6 +105,11 @@ public class TtsSettingsActivity extends PreferenceActivity {
         }
     }
 
+    @Override
+    protected boolean isValidFragment(String fragmentName) {
+        return PrefsEspeakFragment.class.getName().equals(fragmentName);
+    }
+
     public static class PrefsEspeakFragment extends PreferenceFragment {
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -142,6 +117,40 @@ public class TtsSettingsActivity extends PreferenceActivity {
 
             addPreferencesFromResource(R.xml.preferences);
             createPreferences(getActivity(), getPreferenceScreen());
+        }
+    }
+
+    public static class InfoPreference extends Preference {
+        public InfoPreference(Context context) {
+            super(context);
+            setSelectable(false);
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return true;
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+
+            view.setClickable(false);
+            view.setFocusable(false);
+            view.setBackgroundResource(0);
+
+            view.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+                @Override
+                public void onInitializeAccessibilityNodeInfo(View host, android.view.accessibility.AccessibilityNodeInfo info) {
+                    super.onInitializeAccessibilityNodeInfo(host, info);
+                    info.setClickable(false);
+                    info.setFocusable(false);
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        info.removeAction(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
+                    }
+                }
+            });
         }
     }
 
@@ -182,18 +191,93 @@ public class TtsSettingsActivity extends PreferenceActivity {
 
     private static Preference createUnicodeNormalizationPreference(Context context) {
         final CheckBoxPreference pref = new CheckBoxPreference(context);
+        pref.setLayoutResource(R.layout.preference_checkbox);
         pref.setTitle(R.string.setting_unicode_normalization);
         pref.setSummary(R.string.setting_unicode_normalization_summary);
         pref.setKey(VoiceSettings.PREF_UNICODE_NORMALIZATION);
-        pref.setDefaultValue(true);
-        pref.setPersistent(true);
+        pref.setPersistent(false);
+
+        if (storageContext == null) {
+            storageContext = EspeakApp.getStorageContext();
+        }
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(storageContext);
+        final boolean currentValue = prefs.getBoolean(VoiceSettings.PREF_UNICODE_NORMALIZATION, true);
+        pref.setChecked(currentValue);
+
+        pref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                final boolean isChecked = (Boolean) newValue;
+                prefs.edit().putBoolean(VoiceSettings.PREF_UNICODE_NORMALIZATION, isChecked).apply();
+                return true;
+            }
+        });
+
         return pref;
     }
 
-    /**
-     * Describes one voice parameter to {@link SeekBarPreference}: where its
-     * value lives, what it is called and how it reads.
-     */
+    private static Preference createSpeakDigitsPreference(Context context) {
+        final CheckBoxPreference pref = new CheckBoxPreference(context);
+        pref.setLayoutResource(R.layout.preference_checkbox);
+        pref.setTitle(R.string.setting_speak_digits);
+        pref.setSummary(R.string.setting_speak_digits_summary);
+        pref.setKey(VoiceSettings.PREF_SPEAK_DIGITS);
+        pref.setPersistent(false);
+
+        if (storageContext == null) {
+            storageContext = EspeakApp.getStorageContext();
+        }
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(storageContext);
+        final boolean currentValue = prefs.getBoolean(VoiceSettings.PREF_SPEAK_DIGITS, false);
+        pref.setChecked(currentValue);
+
+        pref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                final boolean isChecked = (Boolean) newValue;
+                prefs.edit().putBoolean(VoiceSettings.PREF_SPEAK_DIGITS, isChecked).apply();
+                return true;
+            }
+        });
+
+        return pref;
+    }
+
+    private static Preference createEmojiFilterPreference(Context context) {
+        final CheckBoxPreference pref = new CheckBoxPreference(context);
+        pref.setLayoutResource(R.layout.preference_checkbox);
+        pref.setTitle(R.string.setting_emoji_filter_title);
+        pref.setSummary(R.string.setting_emoji_filter_summary);
+        pref.setKey(VoiceSettings.PREF_EMOJI_ENABLED);
+        pref.setPersistent(false);
+
+        if (storageContext == null) {
+            storageContext = EspeakApp.getStorageContext();
+        }
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(storageContext);
+        final boolean currentValue = prefs.getBoolean(VoiceSettings.PREF_EMOJI_ENABLED, true);
+        pref.setChecked(currentValue);
+
+        pref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                final boolean isChecked = (Boolean) newValue;
+                prefs.edit().putBoolean(VoiceSettings.PREF_EMOJI_ENABLED, isChecked).apply();
+                return true;
+            }
+        });
+
+        return pref;
+    }
+
+    private static Preference createEmojiInfoPreference(Context context) {
+        final InfoPreference pref = new InfoPreference(context);
+        pref.setTitle(R.string.setting_emoji_info_title);
+        pref.setSummary(R.string.setting_emoji_info_summary);
+        pref.setPersistent(false);
+        return pref;
+    }
+
     private static SeekBarPreference.Parameter voiceParameter(Context context,
                                                               SpeechSynthesis.Parameter parameter,
                                                               String key, int titleRes) {
@@ -234,15 +318,12 @@ public class TtsSettingsActivity extends PreferenceActivity {
         final SeekBarPreference pref = new SeekBarPreference(context);
         pref.setTitle(title);
         pref.setDialogTitle(title);
-        // Without a key, Preference.dispatchSaveInstanceState() skips the
-        // preference and an open dialog does not survive a rotation.
         pref.setKey(key);
         pref.setOnPreferenceChangeListener(mOnPreferenceChanged);
         pref.setPersistent(true);
         return pref;
     }
 
-    /** A single voice parameter, edited in a dialog of its own. */
     private static Preference createSeekBarPreference(Context context,
                                                       SpeechSynthesis.Parameter parameter,
                                                       String key, int titleRes) {
@@ -252,7 +333,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
         return pref;
     }
 
-    /** All four voice parameters, edited together in one dialog. */
     private static Preference createVoiceParamsPreference(Context context,
                                                           SpeechSynthesis engine,
                                                           int titleRes) {
@@ -266,158 +346,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
         return pref;
     }
 
-    private static Preference createSupportedLanguagesPreference(Context context, List<Voice> voices) {
-        final List<Voice> sortedVoices = new ArrayList<Voice>(voices);
-        Collections.sort(sortedVoices, new Comparator<Voice>() {
-            @Override
-            public int compare(Voice lhs, Voice rhs) {
-                return getDisplayName(lhs).compareToIgnoreCase(getDisplayName(rhs));
-            }
-        });
-
-        final SupportedLanguagesPreference pref = new SupportedLanguagesPreference(context);
-        pref.setTitle(R.string.espeak_supported_languages);
-        pref.setDialogTitle(R.string.espeak_supported_languages);
-
-        final CharSequence[] entries = new CharSequence[sortedVoices.size()];
-        final CharSequence[] entryValues = new CharSequence[sortedVoices.size()];
-        int index = 0;
-        for (Voice voice : sortedVoices) {
-            entries[index] = getVoiceLabel(voice);
-            entryValues[index] = voice.toString();
-            ++index;
-        }
-        pref.setEntries(entries);
-        pref.setEntryValues(entryValues);
-
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(storageContext);
-        Set<String> selected = LanguageSettings.getSelectedLanguages(prefs);
-        if (selected == null) {
-            selected = new HashSet<String>();
-            for (Voice voice : sortedVoices) {
-                selected.add(voice.toString());
-            }
-        }
-        pref.setValues(selected);
-        pref.setSummary(getSupportedLanguagesSummary(context, selected, entries.length));
-        pref.setOnPreferenceChangeListener(mOnPreferenceChanged);
-        return pref;
-    }
-
-    private static String getSupportedLanguagesSummary(Context context, Set<String> selected, int total) {
-        int enabled = (selected == null || selected.isEmpty()) ? total : selected.size();
-        if (enabled >= total) {
-            return context.getString(R.string.espeak_supported_languages_all);
-        }
-        return context.getString(R.string.espeak_supported_languages_summary, enabled, total);
-    }
-
-    private static String getDisplayName(Voice voice) {
-        final String displayName = voice.locale.getDisplayName();
-        return (displayName == null || displayName.isEmpty()) ? voice.toString() : displayName;
-    }
-
-    private static String getVoiceLabel(Voice voice) {
-        String name = voice.name; // eSpeak voice id (from engine data)
-        LangInfo info = lookupLangInfo(voice);
-        if (info != null) {
-            return info.language + " - " + info.displayName;
-        }
-        return name + " - " + name;
-    }
-
-    private static class LangInfo {
-        final String language;
-        final String displayName;
-        LangInfo(String language, String displayName) {
-            this.language = language;
-            this.displayName = displayName;
-        }
-    }
-
-    private static LangInfo lookupLangInfo(Voice voice) {
-        ensureLangInfoLoaded();
-        String key1 = voice.name;
-        String key2 = null;
-        if (voice.identifier != null) {
-            int slash = voice.identifier.lastIndexOf('/');
-            key2 = (slash >= 0 && slash < voice.identifier.length() - 1) ? voice.identifier.substring(slash + 1) : voice.identifier;
-        }
-        LangInfo info = sLangInfo.get(key1);
-        if (info == null && key2 != null) {
-            info = sLangInfo.get(key2);
-        }
-        return info;
-    }
-
-    // Synchronized because createPreferences() warms this from a worker thread
-    // while lookupLangInfo() may reach it from the main thread. Readers always
-    // come through here first, so they block until a build in progress
-    // finishes rather than observing a half-populated map.
-    private static synchronized void ensureLangInfoLoaded() {
-        if (!sLangInfo.isEmpty() || storageContext == null) return;
-        File root = new File(CheckVoiceData.getDataPath(storageContext), "lang");
-        if (!root.exists()) return;
-        Stack<File> stack = new Stack<File>();
-        stack.push(root);
-        while (!stack.isEmpty()) {
-            File dir = stack.pop();
-            File[] list = dir.listFiles();
-            if (list == null) continue;
-            for (File f : list) {
-                if (f.isDirectory()) {
-                    stack.push(f);
-                } else {
-                    LangInfo info = parseLangFile(f);
-                    if (info != null) {
-                        sLangInfo.put(f.getName(), info);
-                    }
-                }
-            }
-        }
-    }
-
-    private static LangInfo parseLangFile(File file) {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
-            String language = null;
-            String name = null;
-            String line;
-            while ((line = reader.readLine()) != null) {
-                line = line.trim();
-                if (line.startsWith("language")) {
-                    language = line.substring("language".length()).trim();
-                } else if (line.startsWith("name")) {
-                    name = line.substring("name".length()).trim();
-                }
-                if (language != null && name != null) break;
-            }
-            if (language == null && name == null) return null;
-            if (language == null) language = file.getName();
-            if (name == null) name = file.getName();
-            return new LangInfo(language, name);
-        } catch (IOException e) {
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "Failed parsing lang file " + file.getName() + ": " + e.getMessage());
-            }
-            return null;
-        }
-    }
-
-    /**
-     * Gathers what the preference screen needs from the engine, then builds it.
-     *
-     * All of the expensive part used to run inline in onCreate(): constructing
-     * SpeechSynthesis initialises the native library (nativeCreate loads
-     * phondata and the dictionaries), getAvailableVoices() enumerates every
-     * voice over JNI, and building the supported-languages list walks the whole
-     * lang/ tree opening and parsing one file per voice. That is seconds of
-     * disk and JNI work on a cold start with a slow filesystem, on the thread
-     * that has to stay responsive -- the ANR risk reported in #2430.
-     *
-     * So it is gathered on a worker thread and the preferences are added when
-     * it lands. The Preference objects themselves are still built on the main
-     * thread, which is required: they bind to the hosting PreferenceGroup.
-     */
     private static void createPreferences(final Context context, final PreferenceGroup group) {
         final Context storage = storageContext;
         final Handler handler = new Handler(Looper.getMainLooper());
@@ -430,14 +358,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
 
                 final SpeechSynthesis engine = new SpeechSynthesis(storage, null);
                 final List<Voice> voices = engine.getAvailableVoices();
-
-                // Warm the lang/ metadata cache here rather than leaving it to
-                // the first getVoiceLabel() call, which would drag the whole
-                // scan back onto the main thread. Skipped on Wear, where the
-                // supported-languages list is not built at all.
-                if (!isWatch) {
-                    ensureLangInfoLoaded();
-                }
 
                 handler.post(new Runnable() {
                     @Override
@@ -452,11 +372,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
         }, "espeak-settings-load").start();
     }
 
-    /**
-     * True once the hosting activity can no longer accept preference updates.
-     * The load outlives a screen the user backed straight out of, and adding
-     * preferences to a dead activity's group would leak it.
-     */
     private static boolean isGone(Context context) {
         if (!(context instanceof Activity)) {
             return false;
@@ -469,32 +384,25 @@ public class TtsSettingsActivity extends PreferenceActivity {
                 && activity.isDestroyed();
     }
 
-    /**
-     * Since the "%s" summary is currently broken, this sets the preference
-     * change listener for all {@link ListPreference} views to fill in the
-     * summary with the current entry value.
-     */
     private static void addPreferences(Context context, PreferenceGroup group,
                                        SpeechSynthesis engine, List<Voice> voices,
                                        boolean isWatch) {
         VoiceSettings settings = new VoiceSettings(PreferenceManager.getDefaultSharedPreferences(storageContext), engine);
 
-        // The supported-languages multi-select and the file-picker-driven
-        // voice import don't fit on a watch screen and have no meaningful
-        // input affordance there, so omit them on Wear.
         if (!isWatch) {
-            group.addPreference(createSupportedLanguagesPreference(context, voices));
-            group.addPreference(createImportVoicePreference(context));
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                group.addPreference(createImportVoicePreference(context));
+            }
         }
+
         group.addPreference(createVoiceVariantPreference(context, settings, R.string.espeak_variant));
         group.addPreference(createSpeakPunctuationPreference(context, settings, R.string.espeak_speak_punctuation));
         group.addPreference(createUnicodeNormalizationPreference(context));
+        group.addPreference(createSpeakDigitsPreference(context));
+        group.addPreference(createEmojiFilterPreference(context));
+        group.addPreference(createEmojiInfoPreference(context));
 
         if (isWatch) {
-            // One parameter per dialog on Wear. The rotating crown only
-            // delivers scroll events to the focused view and the watch has no
-            // way to move focus between sliders, so a combined dialog would
-            // leave every slider but one unreachable by the crown.
             group.addPreference(createSeekBarPreference(context, engine.Rate, VoiceSettings.PREF_RATE, R.string.setting_default_rate));
             group.addPreference(createSeekBarPreference(context, engine.Pitch, VoiceSettings.PREF_PITCH, R.string.setting_default_pitch));
             group.addPreference(createSeekBarPreference(context, engine.PitchRange, VoiceSettings.PREF_PITCH_RANGE, R.string.espeak_pitch_range));
@@ -522,11 +430,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
                             summary = (String)newValue;
                         }
                         preference.setSummary(summary);
-                    } else if (newValue instanceof Set && preference instanceof MultiSelectListPreference) {
-                        @SuppressWarnings("unchecked")
-                        final Set<String> values = new HashSet<String>((Set<String>) newValue);
-                        final int total = ((MultiSelectListPreference) preference).getEntries().length;
-                        preference.setSummary(getSupportedLanguagesSummary(preference.getContext(), values, total));
                     }
                     return true;
                 }

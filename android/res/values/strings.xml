@@ -37,12 +37,6 @@
   <string name="espeak_pitch_range">Pitch variation</string>
   <string name="espeak_variant">Voice variant</string>
   <string name="espeak_voice_settings">Voice settings</string>
-  <string name="espeak_supported_languages">Supported languages</string>
-  <string name="espeak_supported_languages_all">All installed languages are reported to Android.</string>
-  <string name="espeak_supported_languages_summary">%1$d of %2$d languages reported to Android.</string>
-  <string name="espeak_select_all_languages">Select all languages</string>
-  <string name="espeak_deselect_all_languages">Deselect all languages</string>
-  <string name="espeak_supported_languages_guard">Select at least one language.</string>
   <string name="espeak_speak_punctuation">Speak punctuation</string>
   <!--
         Source: Checkbox label.
@@ -72,4 +66,17 @@
   <string name="variant_whisper">Whisper</string>
   <string name="import_voice_title">Import eSpeak dictionary</string>
   <string name="import_voice_description">Import an eSpeak voice dictionary file from the SD card.</string>
+    <string name="opt_espeak_settings">eSpeak Settings</string>
+    <string name="opt_general_tts">Text-to-Speech Settings</string>
+    <string name="opt_telegram">Contact us on Telegram</string>
+    <string name="opt_email">Send email to support</string>
+    <string name="chooser_telegram">Choose Telegram app</string>
+    <string name="no_telegram_app">No Telegram app is installed on your device.</string>
+<string name="setting_emoji_filter_title">Read emojis</string>
+<string name="setting_emoji_filter_summary">This option determines whether emojis and emoticons in the text (such as smiley face, heart, and crying face) are spoken during speech synthesis</string>
+<string name="setting_emoji_info_title">Note</string>
+<string name="setting_emoji_info_summary">If you run into any issues with the emoji feature, you can report them through the contact options on the main screen.</string>
+<string name="no_email_app">Please install an email client.</string>
+  <string name="setting_speak_digits">Read numbers digit by digit</string>
+  <string name="setting_speak_digits_summary">Speak each digit separately, for example reading "123" as "one two three" instead of "one hundred twenty three"</string>
 </resources>

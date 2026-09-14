@@ -191,7 +191,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
 
     private static Preference createUnicodeNormalizationPreference(Context context) {
         final CheckBoxPreference pref = new CheckBoxPreference(context);
-        pref.setLayoutResource(R.layout.preference_checkbox);
         pref.setTitle(R.string.setting_unicode_normalization);
         pref.setSummary(R.string.setting_unicode_normalization_summary);
         pref.setKey(VoiceSettings.PREF_UNICODE_NORMALIZATION);
@@ -218,7 +217,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
 
     private static Preference createSpeakDigitsPreference(Context context) {
         final CheckBoxPreference pref = new CheckBoxPreference(context);
-        pref.setLayoutResource(R.layout.preference_checkbox);
         pref.setTitle(R.string.setting_speak_digits);
         pref.setSummary(R.string.setting_speak_digits_summary);
         pref.setKey(VoiceSettings.PREF_SPEAK_DIGITS);
@@ -245,7 +243,6 @@ public class TtsSettingsActivity extends PreferenceActivity {
 
     private static Preference createEmojiFilterPreference(Context context) {
         final CheckBoxPreference pref = new CheckBoxPreference(context);
-        pref.setLayoutResource(R.layout.preference_checkbox);
         pref.setTitle(R.string.setting_emoji_filter_title);
         pref.setSummary(R.string.setting_emoji_filter_summary);
         pref.setKey(VoiceSettings.PREF_EMOJI_ENABLED);

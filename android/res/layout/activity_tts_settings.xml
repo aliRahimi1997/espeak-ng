@@ -10,7 +10,12 @@
         android:layout_height="wrap_content"
         android:padding="16dp"
         android:textSize="20sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:text="@string/tts_settings_label"
+        android:focusable="false"
+        android:clickable="false"
+        android:longClickable="false"
+        android:importantForAccessibility="yes" />
 
     <FrameLayout
         android:id="@+id/preference_container"

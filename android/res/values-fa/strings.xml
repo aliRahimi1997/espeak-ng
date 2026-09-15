@@ -39,7 +39,7 @@
   <string name="variant_whisper">پچ پچ</string>
   <string name="import_voice_title">افزودن دیکشنری eSpeak</string>
   <string name="import_voice_description">افزودن یک فایل دیکشنری صوتی eSpeak از کارت حافظه</string>
-<string name="opt_espeak_settings">تنظیمات eSpeak</string>
+<string name="opt_espeak_settings">تنظیمات eSpeak V</string>
 <string name="opt_general_tts">تنظیمات تبدیل متن به گفتار</string>
 <string name="opt_telegram">تماس با ما در تلگرام</string>
 <string name="opt_email">ارسال ایمیل به پشتیبانی</string>

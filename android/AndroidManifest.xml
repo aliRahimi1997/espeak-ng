@@ -85,7 +85,6 @@
         <activity
             android:name=".TtsSettingsActivity"
             android:label="@string/tts_settings_label"
-    android:theme="@android:style/Theme.DeviceDefault.Light"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.speech.tts.engine.CONFIGURE_ENGINE" />

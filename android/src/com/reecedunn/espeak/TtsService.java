@@ -339,19 +339,17 @@ public class TtsService extends TextToSpeechService {
         mAnchorCodePoint = codePointIndex;
         return mAnchorOffset;
     }
-
-    private String filterPersianDates(String text) {
-        if (text == null || text.isEmpty()) return text;
-        Pattern pattern = Pattern.compile("(\\d+)-(\\d+)-(\\d+)");
-        Matcher matcher = pattern.matcher(text);
-        StringBuffer sb = new StringBuffer(text.length());
-        while (matcher.find()) {
-            matcher.appendReplacement(sb, matcher.group(1) + "\u200C" + matcher.group(2) + "\u200C" + matcher.group(3));
-        }
-        matcher.appendTail(sb);
-        return sb.toString();
+private String filterPersianDates(String text) {
+    if (text == null || text.isEmpty()) return text;
+    Pattern pattern = Pattern.compile("(\\d+)-(\\d+)-(\\d+)", Pattern.UNICODE_CHARACTER_CLASS);
+    Matcher matcher = pattern.matcher(text);
+    StringBuffer sb = new StringBuffer(text.length());
+    while (matcher.find()) {
+        matcher.appendReplacement(sb, matcher.group(1) + " " + matcher.group(2) + " " + matcher.group(3));
     }
-
+    matcher.appendTail(sb);
+    return sb.toString();
+}
     @Override
     protected synchronized void onSynthesizeText(SynthesisRequest request, SynthesisCallback callback) {
         if (selectVoice(request) == TextToSpeech.ERROR) {

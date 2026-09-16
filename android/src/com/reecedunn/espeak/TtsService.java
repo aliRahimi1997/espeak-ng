@@ -48,6 +48,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @SuppressLint("NewApi")
 public class TtsService extends TextToSpeechService {
@@ -338,6 +340,18 @@ public class TtsService extends TextToSpeechService {
         return mAnchorOffset;
     }
 
+    private String filterPersianDates(String text) {
+        if (text == null || text.isEmpty()) return text;
+        Pattern pattern = Pattern.compile("(\\d+)-(\\d+)-(\\d+)");
+        Matcher matcher = pattern.matcher(text);
+        StringBuffer sb = new StringBuffer(text.length());
+        while (matcher.find()) {
+            matcher.appendReplacement(sb, matcher.group(1) + "\u200C" + matcher.group(2) + "\u200C" + matcher.group(3));
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
+    }
+
     @Override
     protected synchronized void onSynthesizeText(SynthesisRequest request, SynthesisCallback callback) {
         if (selectVoice(request) == TextToSpeech.ERROR) {
@@ -369,6 +383,10 @@ public class TtsService extends TextToSpeechService {
                 Log.v(TAG,
                         "Synthesis request contained param {" + key + ", " + params.get(key) + "}");
             }
+        }
+        
+        if (voice.name != null && voice.name.startsWith("fa")) {
+             text = filterPersianDates(text);
         }
 
         int textOffset = 0;

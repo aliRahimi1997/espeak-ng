@@ -8,7 +8,6 @@ public final class EmojiProcessor {
     private static final BitSet EMOJI_BITSET = new BitSet(Character.MAX_CODE_POINT + 1);
 
     static {
-        // ۱. محدوده‌های اصلی و پایه
         addRange(0x1F600, 0x1F64F);
         addRange(0x1F300, 0x1F5FF);
         addRange(0x1F680, 0x1F6FF);
@@ -24,41 +23,27 @@ public final class EmojiProcessor {
         addRange(0x1F000, 0x1F02F);
         addRange(0x1F0A0, 0x1F0FF);
         addRange(0x2800, 0x28FF);
-
-        // ۲. محدوده‌های تکمیلی، هندسی و ایمن اضافه شده
-        addRange(0x2044, 0x20BF);   // نمادهای پولی و نقطه‌گذاری
-        addRange(0x2190, 0x21FF);   // پیکان‌ها و فلش‌ها
-        addRange(0x25A0, 0x25FF);   // اشکال هندسی
-        addRange(0x2B00, 0x2BFF);   // نمادهای متفرقه و پیکان‌ها
-        addRange(0x1F18E, 0x1F19A); // حروف و نمادهای محصور در کادر
-        addRange(0x3030, 0x303F);   // نمادهای CJK
-        addRange(0x2100, 0x214F);   // نمادهای شبیه به حرف (بدون کاراکترهای C1)
-        addRange(0x2460, 0x24FF);   // حروف و اعداد محصور
-        addRange(0x2200, 0x22FF);   // عملگرهای ریاضی
-        addRange(0x2A00, 0x2AFF);   // عملگرهای ریاضی تکمیلی
-        addRange(0x2300, 0x23FF);   // نمادهای فنی متفرقه
-        addRange(0x2934, 0x2935);   // پیکان‌های خمیده مکمل
-
-        // ۳. کاراکترهای تگ (Tag Characters) برای پرچم‌های زیربخش
+        addRange(0x2190, 0x21FF);
+        addRange(0x25A0, 0x25FF);
+        addRange(0x2B00, 0x2BFF);
+        addRange(0x1F18E, 0x1F19A);
+        addRange(0x2300, 0x23FF);
+        addRange(0x2934, 0x2935);
         addRange(0xE0020, 0xE007F);
 
-        // ۴. کاراکترهای تکی استثنایی
         int[] singlePoints = {
-            0x203C, // علامت تعجب دوتایی
-            0x207B, // منفی زبرنوشت
-            0x3297, // دکمه تبریک ژاپنی
-            0x3299  // دکمه راز ژاپنی
+            0x3297,
+            0x3299
         };
         
         for (int cp : singlePoints) {
             EMOJI_BITSET.set(cp);
         }
 
-        // ۵. کاراکترهای اتصال‌دهنده و انتخاب‌گر سبک (نامرئی)
-        EMOJI_BITSET.set(0x200D); // اتصال‌دهنده با عرض صفر (ZWJ)
-        EMOJI_BITSET.set(0xFE0E); // انتخاب‌گر سبک متن
-        EMOJI_BITSET.set(0xFE0F); // انتخاب‌گر سبک ایموجی
-        EMOJI_BITSET.set(0x20E3); // کادر محصورکننده کلیدها
+        EMOJI_BITSET.set(0x200D);
+        EMOJI_BITSET.set(0xFE0E);
+        EMOJI_BITSET.set(0xFE0F);
+        EMOJI_BITSET.set(0x20E3);
     }
 
     private static void addRange(int start, int end) {
@@ -72,7 +57,6 @@ public final class EmojiProcessor {
         if (codePoint < 0 || codePoint >= EMOJI_BITSET.size()) {
             return false;
         }
-        // استثنای محدوده بریل
         if (codePoint >= 0x2800 && codePoint <= 0x28FF) {
             return true;
         }

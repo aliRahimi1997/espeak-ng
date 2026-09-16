@@ -341,14 +341,10 @@ public class TtsService extends TextToSpeechService {
     }
 private String filterPersianDates(String text) {
     if (text == null || text.isEmpty()) return text;
-    Pattern pattern = Pattern.compile("(\\d+)-(\\d+)-(\\d+)", Pattern.UNICODE_CHARACTER_CLASS);
-    Matcher matcher = pattern.matcher(text);
-    StringBuffer sb = new StringBuffer(text.length());
-    while (matcher.find()) {
-        matcher.appendReplacement(sb, matcher.group(1) + " " + matcher.group(2) + " " + matcher.group(3));
-    }
-    matcher.appendTail(sb);
-    return sb.toString();
+    
+    String regex = "([0-9\\u0660-\\u0669\\u06F0-\\u06F9]+)-([0-9\\u0660-\\u0669\\u06F0-\\u06F9]+)-([0-9\\u0660-\\u0669\\u06F0-\\u06F9]+)";
+    
+    return text.replaceAll(regex, "$1 $2 $3");
 }
     @Override
     protected synchronized void onSynthesizeText(SynthesisRequest request, SynthesisCallback callback) {

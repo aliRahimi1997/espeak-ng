@@ -341,19 +341,14 @@ public class TtsService extends TextToSpeechService {
     }
 private String filterPersianDates(String text) {
     if (text == null || text.isEmpty()) return text;
-    
     if (text.trim().equals("\u0648")) {
         return "\u0648\u0627\u0648";
     }
-    
     text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " ");
-    
     text = text.replaceAll("(?<=[a-zA-Z\\u0600-\\u06FF])-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " ");
-    
     text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?=[a-zA-Z\\u0600-\\u06FF])", " ");
-    
     text = text.replaceAll("(?<=[a-zA-Z\\u0600-\\u06FF])-(?![0-9\\u0660-\\u0669\\u06F0-\\u06F9a-zA-Z\\u0600-\\u06FF])", "");
-    
+    text = text.replaceAll("\u200C(?=\\s|$)", "");
     return text;
 }
     @Override

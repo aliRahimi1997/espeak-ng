@@ -339,18 +339,20 @@ public class TtsService extends TextToSpeechService {
         mAnchorCodePoint = codePointIndex;
         return mAnchorOffset;
     }
-private String filterPersianDates(String text) {
-    if (text == null || text.isEmpty()) return text;
-    if (text.trim().equals("\u0648")) {
-        return "\u0648\u0627\u0648";
+
+    private String filterPersianDates(String text) {
+        if (text == null || text.isEmpty()) return text;
+        if (text.trim().equals("\u0648")) {
+            return "\u0648\u0627\u0648";
+        }
+        text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " ");
+        text = text.replaceAll("(?<=[a-zA-Z\\u0600-\\u06FF])-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " ");
+        text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?=[a-zA-Z\\u0600-\\u06FF])", " ");
+        text = text.replaceAll("(?<=[a-zA-Z\\u0600-\\u06FF])-(?![0-9\\u0660-\\u0669\\u06F0-\\u06F9a-zA-Z\\u0600-\\u06FF])", "");
+        text = text.replaceAll("(?<=\\s|^)\u200C|\u200C(?=\\s|$)", "");
+        return text;
     }
-    text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " ");
-    text = text.replaceAll("(?<=[a-zA-Z\\u0600-\\u06FF])-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " ");
-    text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?=[a-zA-Z\\u0600-\\u06FF])", " ");
-    text = text.replaceAll("(?<=[a-zA-Z\\u0600-\\u06FF])-(?![0-9\\u0660-\\u0669\\u06F0-\\u06F9a-zA-Z\\u0600-\\u06FF])", "");
-    text = text.replaceAll("(?<=\\s|^)\u200C|\u200C(?=\\s|$)", "");
-    return text;
-}
+
     @Override
     protected synchronized void onSynthesizeText(SynthesisRequest request, SynthesisCallback callback) {
         if (selectVoice(request) == TextToSpeech.ERROR) {
@@ -428,6 +430,26 @@ private String filterPersianDates(String text) {
             String filteredText = EmojiProcessor.removeEmojis(text);
             if (filteredText != null && !filteredText.equals(text)) {
                 text = filteredText;
+                normalization = null;
+            }
+        }
+
+        if (!isSsml) {
+            int punctLevel = settings.getPunctuationLevel();
+            String regexAllPunct = "[\\p{P}\\p{S}]";
+            
+            if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
+                text = text.replaceAll(regexAllPunct, " ");
+            } else if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
+                text = text.replaceAll("[.,?!:;\"'()\\[\\]{}\\-،؛؟«»]", " ");
+            } else if (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
+                String customChars = settings.getPunctuationCharacters();
+                if (customChars == null || customChars.trim().isEmpty()) {
+                    text = text.replaceAll(regexAllPunct, " ");
+                } else {
+                    String escaped = customChars.replaceAll("([\\[\\]\\\\^-])", "\\\\$1");
+                    text = text.replaceAll("(?![" + escaped + "])" + regexAllPunct, " ");
+                }
             }
         }
 

@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2013 Reece H. Dunn
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.reecedunn.espeak;
 
 import android.content.SharedPreferences;
@@ -51,6 +35,7 @@ public class VoiceSettings {
 
     public static final String PUNCTUATION_NONE = "none";
     public static final String PUNCTUATION_SOME = "some";
+    public static final String PUNCTUATION_CUSTOM = "custom";
     public static final String PUNCTUATION_ALL = "all";
 
     public VoiceSettings(SharedPreferences preferences, SpeechSynthesis engine) {
@@ -80,10 +65,8 @@ public class VoiceSettings {
         }
 
         if (isRateBoostEnabled()) {
-            // Allow values beyond the normal espeakRATE_MAXIMUM so the native
-            // engine can engage its Sonic fast path for very high rates.
             rate = rate * RATE_BOOST_MULTIPLIER;
-            int boostedMax = max * RATE_BOOST_MULTIPLIER; // keep within a sensible upper bound
+            int boostedMax = max * RATE_BOOST_MULTIPLIER;
             if (rate > boostedMax) rate = boostedMax;
         } else if (rate > max) {
             rate = max;
@@ -164,6 +147,9 @@ public class VoiceSettings {
             case SpeechSynthesis.PUNCT_SOME:
                 settings.put(PRESET_PUNCTUATION_LEVEL, PUNCTUATION_SOME);
                 break;
+            case SpeechSynthesis.PUNCT_CUSTOM:
+                settings.put(PRESET_PUNCTUATION_LEVEL, PUNCTUATION_CUSTOM);
+                break;
             case SpeechSynthesis.PUNCT_ALL:
                 settings.put(PRESET_PUNCTUATION_LEVEL, PUNCTUATION_ALL);
                 break;
@@ -175,12 +161,6 @@ public class VoiceSettings {
         return mPreferences.getBoolean(PREF_RATE_BOOST, false);
     }
 
-    /**
-     * Whether to NFKC-normalize text before synthesis, so stylized Unicode
-     * (e.g. 𝖇𝖔𝖑𝖉 social media "fonts") is read as words instead of being
-     * spelled out codepoint by codepoint. On by default, matching NVDA's
-     * speech setting and speech-dispatcher's always-on server behaviour.
-     */
     public boolean isUnicodeNormalizationEnabled() {
         return mPreferences.getBoolean(PREF_UNICODE_NORMALIZATION, true);
     }
@@ -189,13 +169,6 @@ public class VoiceSettings {
         return mPreferences.getBoolean(PREF_EMOJI_ENABLED, true);
     }
 
-    /**
-     * Whether to read numbers digit-by-digit instead of as whole numbers.
-     * When enabled, "123" is spoken as "one two three" (or equivalent in
-     * the active language) by inserting spaces between digits. Off by
-     * default so that numbers like "123" are read as "one hundred twenty
-     * three".
-     */
     public boolean isSpeakDigitsEnabled() {
         return mPreferences.getBoolean(PREF_SPEAK_DIGITS, false);
     }

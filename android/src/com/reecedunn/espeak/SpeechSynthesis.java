@@ -190,6 +190,7 @@ public class SpeechSynthesis {
 
     /** Announce some of the punctuation characters. */
     public static final int PUNCT_SOME = 2;
+public static final int PUNCT_CUSTOM = 3;
 
     public enum UnitType {
         Percentage,

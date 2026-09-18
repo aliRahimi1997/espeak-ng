@@ -1,20 +1,3 @@
-/*
- * Copyright (C) 2022 Beka Gozalishvili
- * Copyright (C) 2013 Reece H. Dunn
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.reecedunn.espeak.preference;
 
 import android.content.Context;
@@ -35,6 +18,7 @@ import com.reecedunn.espeak.VoiceSettings;
 
 public class SpeakPunctuationPreference extends DialogPreference {
     private RadioButton mAll;
+    private RadioButton mSome;
     private RadioButton mCustom;
     private RadioButton mNone;
     private EditText mPunctuationCharacters;
@@ -68,6 +52,9 @@ public class SpeakPunctuationPreference extends DialogPreference {
                 callChangeListener(getContext().getText(R.string.punctuation_all));
                 break;
             case SpeechSynthesis.PUNCT_SOME:
+                callChangeListener(getContext().getText(R.string.punctuation_some));
+                break;
+            case SpeechSynthesis.PUNCT_CUSTOM:
                 if (characters == null || characters.isEmpty()) {
                     callChangeListener(getContext().getText(R.string.punctuation_none));
                 } else {
@@ -84,6 +71,7 @@ public class SpeakPunctuationPreference extends DialogPreference {
     protected View onCreateDialogView() {
         View root = super.onCreateDialogView();
         mAll = (RadioButton)root.findViewById(R.id.all);
+        mSome = (RadioButton)root.findViewById(R.id.some);
         mCustom = (RadioButton)root.findViewById(R.id.custom);
         mNone = (RadioButton)root.findViewById(R.id.none);
         mPunctuationCharacters = (EditText)root.findViewById(R.id.punctuation_characters);
@@ -96,13 +84,16 @@ public class SpeakPunctuationPreference extends DialogPreference {
 
         switch (mSettings.getPunctuationLevel()) {
             case SpeechSynthesis.PUNCT_ALL:
-                mAll.toggle();
+                mAll.setChecked(true);
                 break;
             case SpeechSynthesis.PUNCT_SOME:
-                mCustom.toggle();
+                mSome.setChecked(true);
+                break;
+            case SpeechSynthesis.PUNCT_CUSTOM:
+                mCustom.setChecked(true);
                 break;
             case SpeechSynthesis.PUNCT_NONE:
-                mNone.toggle();
+                mNone.setChecked(true);
                 break;
         }
 
@@ -122,19 +113,20 @@ public class SpeakPunctuationPreference extends DialogPreference {
 
                 if (mNone.isChecked()) {
                     level = SpeechSynthesis.PUNCT_NONE;
-                } else if (characters == null || characters.isEmpty()) {
-                    level = mAll.isChecked() ? SpeechSynthesis.PUNCT_ALL : SpeechSynthesis.PUNCT_NONE;
+                } else if (mSome.isChecked()) {
+                    level = SpeechSynthesis.PUNCT_SOME;
+                } else if (mAll.isChecked()) {
+                    level = SpeechSynthesis.PUNCT_ALL;
                 } else {
-                    level = mAll.isChecked() ? SpeechSynthesis.PUNCT_ALL : SpeechSynthesis.PUNCT_SOME;
+                    level = (characters == null || characters.isEmpty()) ? SpeechSynthesis.PUNCT_NONE : SpeechSynthesis.PUNCT_CUSTOM;
                 }
 
                 onDataChanged(level, characters);
 
                 if (shouldCommit()) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-                    {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         PreferenceManager preferenceManager = getPreferenceManager();
-                        preferenceManager.setStorageDeviceProtected ();
+                        preferenceManager.setStorageDeviceProtected();
                     }
                     SharedPreferences.Editor editor = getEditor();
                     if (editor != null) {

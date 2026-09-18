@@ -247,6 +247,7 @@ public class TtsService extends TextToSpeechService {
     @Override
     protected void onStop() {
         Log.i(TAG, "Received stop request.");
+
         mEngine.stop();
     }
 
@@ -415,13 +416,13 @@ public class TtsService extends TextToSpeechService {
             String regexAllPunct;
             
             if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
-                regexAllPunct = "[\\p{P}\\p{S}&&[^" + prosodyChars + "]]";
+                regexAllPunct = "[\\p{P}\\p{S}&&[^" + prosodyChars + "']]";
                 text = text.replaceAll(regexAllPunct, " ");
             } else if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
-                text = text.replaceAll("[\"'()\\[\\]{}\\-«»]", " ");
+                text = text.replaceAll("[\"()\\[\\]{}\\-«»]", " ");
             } else if (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
                 if (!isCustomValid) {
-                    regexAllPunct = "[\\p{P}\\p{S}&&[^" + prosodyChars + "]]";
+                    regexAllPunct = "[\\p{P}\\p{S}&&[^" + prosodyChars + "']]";
                 } else {
                     String customChars = settings.getPunctuationCharacters();
                     String escaped = customChars.replaceAll("([\\\\\\[\\]\\^\\-&])", "\\\\$1");

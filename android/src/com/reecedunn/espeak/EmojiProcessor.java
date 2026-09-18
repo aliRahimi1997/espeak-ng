@@ -1,5 +1,6 @@
 package com.reecedunn.espeak;
 
+import android.os.Build;
 import java.text.BreakIterator;
 import java.util.BitSet;
 
@@ -22,7 +23,6 @@ public final class EmojiProcessor {
         addRange(0x1F200, 0x1F2FF);
         addRange(0x1F000, 0x1F02F);
         addRange(0x1F0A0, 0x1F0FF);
-        addRange(0x2800, 0x28FF);
         addRange(0x2190, 0x21FF);
         addRange(0x25A0, 0x25FF);
         addRange(0x2B00, 0x2BFF);
@@ -33,9 +33,10 @@ public final class EmojiProcessor {
 
         int[] singlePoints = {
             0x3297,
-            0x3299
+            0x3299,
+            0x3030
         };
-        
+
         for (int cp : singlePoints) {
             EMOJI_BITSET.set(cp);
         }
@@ -54,11 +55,18 @@ public final class EmojiProcessor {
     }
 
     public static boolean isEmoji(int codePoint) {
-        if (codePoint < 0 || codePoint >= EMOJI_BITSET.size()) {
+        if (codePoint <= 0x007F) {
             return false;
         }
-        if (codePoint >= 0x2800 && codePoint <= 0x28FF) {
-            return true;
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (Character.isEmoji(codePoint)) {
+                return true;
+            }
+        }
+        
+        if (codePoint < 0 || codePoint >= EMOJI_BITSET.size()) {
+            return false;
         }
         return EMOJI_BITSET.get(codePoint);
     }
@@ -75,13 +83,7 @@ public final class EmojiProcessor {
 
     public static String removeEmojis(String text) {
         if (text == null || text.isEmpty()) return text;
-
-        String result = removeEmojisWithBreakIterator(text);
-        if (!result.equals(text)) {
-            return result;
-        }
-
-        return removeEmojisByCodePoint(text);
+        return removeEmojisWithBreakIterator(text);
     }
 
     private static String removeEmojisWithBreakIterator(String text) {
@@ -112,17 +114,5 @@ public final class EmojiProcessor {
         }
 
         return hasEmojiFound ? result.toString() : text;
-    }
-
-    private static String removeEmojisByCodePoint(String text) {
-        StringBuilder result = new StringBuilder(text.length());
-        for (int i = 0; i < text.length(); ) {
-            int cp = text.codePointAt(i);
-            if (!isEmoji(cp)) {
-                result.appendCodePoint(cp);
-            }
-            i += Character.charCount(cp);
-        }
-        return result.toString();
     }
 }

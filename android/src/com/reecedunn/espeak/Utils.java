@@ -41,7 +41,7 @@ public class Utils {
         }
 
         List<Object> items = new ArrayList<>(activities);
-        items.add("Cancel");
+        items.add(context.getString(android.R.string.cancel));
 
         ArrayAdapter<Object> adapter = new ArrayAdapter<Object>(context, android.R.layout.select_dialog_item, items) {
             @Override

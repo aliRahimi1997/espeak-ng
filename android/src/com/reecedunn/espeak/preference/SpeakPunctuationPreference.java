@@ -79,7 +79,10 @@ public class SpeakPunctuationPreference extends DialogPreference {
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mPunctuationCharacters.setEnabled(mCustom.isChecked());
+                boolean isCustom = mCustom.isChecked();
+                mPunctuationCharacters.setEnabled(isCustom);
+                mPunctuationCharacters.setFocusable(isCustom);
+                mPunctuationCharacters.setFocusableInTouchMode(isCustom);
             }
         };
 
@@ -110,7 +113,11 @@ public class SpeakPunctuationPreference extends DialogPreference {
                 break;
         }
 
-        mPunctuationCharacters.setEnabled(mCustom.isChecked());
+        boolean isCustom = mCustom.isChecked();
+        mPunctuationCharacters.setEnabled(isCustom);
+        mPunctuationCharacters.setFocusable(isCustom);
+        mPunctuationCharacters.setFocusableInTouchMode(isCustom);
+        
         mPunctuationCharacters.setText(mSettings.getPunctuationCharacters());
     }
 

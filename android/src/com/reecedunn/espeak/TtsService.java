@@ -247,7 +247,6 @@ public class TtsService extends TextToSpeechService {
     @Override
     protected void onStop() {
         Log.i(TAG, "Received stop request.");
-
         mEngine.stop();
     }
 
@@ -412,21 +411,23 @@ public class TtsService extends TextToSpeechService {
             boolean isCustomValid = (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) && 
                                     (settings.getPunctuationCharacters() != null && !settings.getPunctuationCharacters().trim().isEmpty());
 
-            String prosodyChars = ".,!?;،؛؟";
-            String regexAllPunct = "[\\p{P}\\p{S}&&[^" + prosodyChars + "]]";
+            String prosodyChars = ".,!?;،؛؟"; 
+            String regexAllPunct;
             
             if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
+                regexAllPunct = "[\\p{P}\\p{S}&&[^" + prosodyChars + "]]";
                 text = text.replaceAll(regexAllPunct, " ");
             } else if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
                 text = text.replaceAll("[\"'()\\[\\]{}\\-«»]", " ");
             } else if (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
                 if (!isCustomValid) {
-                    text = text.replaceAll(regexAllPunct, " ");
+                    regexAllPunct = "[\\p{P}\\p{S}&&[^" + prosodyChars + "]]";
                 } else {
                     String customChars = settings.getPunctuationCharacters();
-                    String escaped = customChars.replaceAll("([\\[\\]\\\\^-])", "\\\\$1");
-                    text = text.replaceAll("(?![" + escaped + "])" + regexAllPunct, " ");
+                    String escaped = customChars.replaceAll("([\\\\\\[\\]\\^\\-&])", "\\\\$1");
+                    regexAllPunct = "[\\p{P}\\p{S}&&[^" + prosodyChars + escaped + "]]";
                 }
+                text = text.replaceAll(regexAllPunct, " ");
             }
         }
 
@@ -452,7 +453,13 @@ public class TtsService extends TextToSpeechService {
         mEngine.Pitch.setValue(settings.getPitch(), request.getPitch());
         mEngine.PitchRange.setValue(settings.getPitchRange());
         mEngine.Volume.setValue(settings.getVolume());
-        mEngine.Punctuation.setValue(settings.getPunctuationLevel());
+        
+        int enginePunctLevel = settings.getPunctuationLevel();
+        if (enginePunctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
+            enginePunctLevel = SpeechSynthesis.PUNCT_SOME; 
+        }
+        mEngine.Punctuation.setValue(enginePunctLevel);
+        
         mEngine.setPunctuationCharacters(settings.getPunctuationCharacters());
         mEngine.synthesize(text, isSsml);
     }

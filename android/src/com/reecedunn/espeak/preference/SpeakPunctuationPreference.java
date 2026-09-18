@@ -75,6 +75,19 @@ public class SpeakPunctuationPreference extends DialogPreference {
         mCustom = (RadioButton)root.findViewById(R.id.custom);
         mNone = (RadioButton)root.findViewById(R.id.none);
         mPunctuationCharacters = (EditText)root.findViewById(R.id.punctuation_characters);
+
+        View.OnClickListener listener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mPunctuationCharacters.setEnabled(mCustom.isChecked());
+            }
+        };
+
+        mAll.setOnClickListener(listener);
+        mSome.setOnClickListener(listener);
+        mCustom.setOnClickListener(listener);
+        mNone.setOnClickListener(listener);
+
         return root;
     }
 
@@ -97,6 +110,7 @@ public class SpeakPunctuationPreference extends DialogPreference {
                 break;
         }
 
+        mPunctuationCharacters.setEnabled(mCustom.isChecked());
         mPunctuationCharacters.setText(mSettings.getPunctuationCharacters());
     }
 

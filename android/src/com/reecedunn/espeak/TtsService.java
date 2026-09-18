@@ -1,28 +1,3 @@
-/*
- * Copyright (C) 2022 Beka Gozalishvili
- * Copyright (C) 2012-2015 Reece H. Dunn
- * Copyright (C) 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
- * This file implements the Android Text-to-Speech engine for eSpeak.
- *
- * Android Version: 4.0 (Ice Cream Sandwich)
- * API Version:     14
- */
-
 package com.reecedunn.espeak;
 
 import android.annotation.SuppressLint;
@@ -48,8 +23,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @SuppressLint("NewApi")
 public class TtsService extends TextToSpeechService {
@@ -436,17 +409,21 @@ public class TtsService extends TextToSpeechService {
 
         if (!isSsml) {
             int punctLevel = settings.getPunctuationLevel();
-            String regexAllPunct = "[\\p{P}\\p{S}]";
+            boolean isCustomValid = (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) && 
+                                    (settings.getPunctuationCharacters() != null && !settings.getPunctuationCharacters().trim().isEmpty());
+
+            String prosodyChars = ".,!?;،؛؟";
+            String regexAllPunct = "[\\p{P}\\p{S}&&[^" + prosodyChars + "]]";
             
             if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
                 text = text.replaceAll(regexAllPunct, " ");
             } else if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
-                text = text.replaceAll("[.,?!:;\"'()\\[\\]{}\\-،؛؟«»]", " ");
+                text = text.replaceAll("[\"'()\\[\\]{}\\-«»]", " ");
             } else if (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
-                String customChars = settings.getPunctuationCharacters();
-                if (customChars == null || customChars.trim().isEmpty()) {
+                if (!isCustomValid) {
                     text = text.replaceAll(regexAllPunct, " ");
                 } else {
+                    String customChars = settings.getPunctuationCharacters();
                     String escaped = customChars.replaceAll("([\\[\\]\\\\^-])", "\\\\$1");
                     text = text.replaceAll("(?![" + escaped + "])" + regexAllPunct, " ");
                 }
@@ -496,21 +473,6 @@ public class TtsService extends TextToSpeechService {
         }
     }
 
-    /**
-     * Inserts spaces between adjacent digits so that eSpeak reads each digit
-     * individually (e.g. "123" becomes "1 2 3").
-     *
-     * <p>Supports all Unicode decimal digit ranges (ASCII 0-9, Arabic-Indic
-     * ٠-٩, Extended Arabic-Indic ۰-۹, Devanagari ०-९, etc.) as classified by
-     * {@link Character#isDigit(int)}. Decimal points and thousand/grouping
-     * separators that sit inside a digit run are preserved; only digits are
-     * separated. Punctuation and word boundaries outside digit runs are
-     * untouched.
-     *
-     * <p>Word-boundary reporting against the original caller text is best
-     * effort: we only insert spaces (never remove or substitute characters)
-     * so code-point offsets stay aligned for every non-space character.
-     */
     static String spaceSeparateDigits(String text) {
         if (text == null || text.isEmpty()) {
             return text;

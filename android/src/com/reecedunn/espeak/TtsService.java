@@ -407,6 +407,9 @@ public class TtsService extends TextToSpeechService {
             }
         }
 
+        // اصلاح هوشمند صفر زمان (مثل تبدیل 01:24 به 1:24 بدون آسیب به شماره تلفن)
+        text = text.replaceAll("(?<!\\d)0+(?=\\d:)", "");
+
         if (!isSsml) {
             int punctLevel = settings.getPunctuationLevel();
             boolean isCustomValid = (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) && 
@@ -455,6 +458,7 @@ public class TtsService extends TextToSpeechService {
         mEngine.PitchRange.setValue(settings.getPitchRange());
         mEngine.Volume.setValue(settings.getVolume());
         
+        // نگاشت سطح سفارشی (3) به سطح معتبر برای موتور (2) جهت جلوگیری از کرش یا ریست شدن
         int enginePunctLevel = settings.getPunctuationLevel();
         if (enginePunctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
             enginePunctLevel = SpeechSynthesis.PUNCT_SOME; 

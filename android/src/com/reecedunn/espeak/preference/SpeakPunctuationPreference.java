@@ -138,6 +138,8 @@ public class SpeakPunctuationPreference extends DialogPreference {
                     level = SpeechSynthesis.PUNCT_SOME;
                 } else if (mAll.isChecked()) {
                     level = SpeechSynthesis.PUNCT_ALL;
+                } else if (mCustom.isChecked()) {
+                    level = SpeechSynthesis.PUNCT_CUSTOM;
                 } else {
                     level = (characters == null || characters.isEmpty()) ? SpeechSynthesis.PUNCT_NONE : SpeechSynthesis.PUNCT_CUSTOM;
                 }

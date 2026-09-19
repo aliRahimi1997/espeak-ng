@@ -254,7 +254,7 @@ public static final int PUNCT_CUSTOM = 3;
     public final Parameter PitchRange = new Parameter(4, 0, 100, UnitType.Percentage);
 
     /** Which punctuation characters to announce. */
-    public final Parameter Punctuation = new Parameter(5, 0, 2, UnitType.Punctuation);
+    public final Parameter Punctuation = new Parameter(5, 0, 3, UnitType.Punctuation);
 
     public void synthesize(String text, boolean isSsml) {
         nativeSynthesize(text, isSsml);

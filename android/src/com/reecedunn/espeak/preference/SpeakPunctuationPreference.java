@@ -79,10 +79,19 @@ public class SpeakPunctuationPreference extends DialogPreference {
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                boolean isCustom = mCustom.isChecked();
+                boolean isCustom = (v.getId() == R.id.custom);
+                
                 mPunctuationCharacters.setEnabled(isCustom);
                 mPunctuationCharacters.setFocusable(isCustom);
                 mPunctuationCharacters.setFocusableInTouchMode(isCustom);
+                
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    if (isCustom) {
+                        mPunctuationCharacters.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+                    } else {
+                        mPunctuationCharacters.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+                    }
+                }
             }
         };
 
@@ -117,6 +126,14 @@ public class SpeakPunctuationPreference extends DialogPreference {
         mPunctuationCharacters.setEnabled(isCustom);
         mPunctuationCharacters.setFocusable(isCustom);
         mPunctuationCharacters.setFocusableInTouchMode(isCustom);
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            if (isCustom) {
+                mPunctuationCharacters.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+            } else {
+                mPunctuationCharacters.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            }
+        }
         
         mPunctuationCharacters.setText(mSettings.getPunctuationCharacters());
     }

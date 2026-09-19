@@ -652,9 +652,8 @@ int ReadClause(Translator *tr, char *buf, short *charix, int *charix_top, int n_
 					buf[ix++] = c1; // add voice name to end of buffer, after the text
 				buf[ix++] = 0;
 				return CLAUSE_VOICE;
-			} else if (c2 == 'B') {
-				// set the punctuation option from an embedded command
-				//  B0     B1     B<punct list><space>
+}
+else if (c2 == 'B') {
 				strcpy(&buf[ix], "   ");
 				ix += 3;
 
@@ -664,14 +663,15 @@ int ReadClause(Translator *tr, char *buf, short *charix, int *charix_top, int n_
 					option_punctuation = 1;
 					option_punctlist[0] = 0;
 					if (c2 != '1') {
-						// a list of punctuation characters to be spoken, terminated by space
 						j = 0;
 						while (!Eof() && !iswspace(c2) && (j < N_PUNCTLIST-1)) {
 							option_punctlist[j++] = c2;
 							c2 = GetC();
-							buf[ix++] = ' ';
+							if (ix < n_buf - 1) {
+								buf[ix++] = ' ';
+							}
 						}
-						option_punctlist[j] = 0; // terminate punctuation list
+						option_punctlist[j] = 0;
 						option_punctuation = 2;
 					}
 				}
@@ -679,8 +679,7 @@ int ReadClause(Translator *tr, char *buf, short *charix, int *charix_top, int n_
 					c2 = GetC();
 				continue;
 			}
-		}
-
+}
 		linelength++;
 
 		 if (IgnoreOrReplaceChar(tr, &c1) == true)

@@ -26,6 +26,7 @@
   <string name="punctuation_custom">سفارشی</string>
   <string name="punctuation_custom_fmt">سفارشی: %s</string>
   <string name="punctuation_none">هیچکدام</string>
+<string name="punctuation_some">برخی</string>
   <string name="punctuation_characters">علائم</string>
   <string name="category">دسته بندی</string>
   <string name="variant">نوع صدا</string>

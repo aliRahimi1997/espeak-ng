@@ -24,7 +24,8 @@
             android:id="@+id/category"
             android:layout_weight="0.5"
             android:gravity="bottom"
-            android:layout_gravity="center_vertical" />
+            android:layout_gravity="center_vertical"
+            android:spinnerMode="dialog" />
     </LinearLayout>
 
     <LinearLayout
@@ -46,7 +47,8 @@
             android:id="@+id/variant"
             android:layout_weight="0.5"
             android:gravity="bottom"
-            android:layout_gravity="center_vertical" />
+            android:layout_gravity="center_vertical"
+            android:spinnerMode="dialog" />
     </LinearLayout>
 
 </LinearLayout>

@@ -431,7 +431,7 @@ public class TtsService extends TextToSpeechService {
                 } else {
                     String customChars = settings.getPunctuationCharacters();
                     String escaped = customChars.replaceAll("([\\\\\\[\\]\\^\\-&])", "\\\\$1");
-                    regexAllPunct = "[\\p{P}\\p{S}&&[^" + prosodyChars + escaped + "]]";
+                    regexAllPunct = "[\\p{P}\\p{S}&&[^" + prosodyChars + escaped + "']]";
                 }
                 text = text.replaceAll(regexAllPunct, " ");
             }

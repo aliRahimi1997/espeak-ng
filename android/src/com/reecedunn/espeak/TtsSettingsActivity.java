@@ -35,6 +35,14 @@ public class TtsSettingsActivity extends PreferenceActivity {
     @Override
     @SuppressWarnings("deprecation")
     protected void onCreate(Bundle savedInstanceState) {
+        android.content.res.Configuration config = getBaseContext().getResources().getConfiguration();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            config.setLocale(android.content.res.Resources.getSystem().getConfiguration().getLocales().get(0));
+        } else {
+            config.locale = android.content.res.Resources.getSystem().getConfiguration().locale;
+        }
+        getBaseContext().getResources().updateConfiguration(config, getBaseContext().getResources().getDisplayMetrics());
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tts_settings);
 

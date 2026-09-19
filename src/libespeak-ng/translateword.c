@@ -1110,7 +1110,7 @@ static int TranslateLetter(Translator *tr, char *word, char *phonemes, int contr
 
 		if (speak_letter_number) {
 			char *p2;
-			if (al_offset == 0x2800) {
+			if (0 /* al_offset == 0x2800 */) {
 				// braille dots symbol, list the numbered dots
 				p2 = hexbuf;
 				for (int ix = 0; ix < 8; ix++) {

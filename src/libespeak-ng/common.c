@@ -214,7 +214,7 @@ int IsAlpha(unsigned int c)
 	if ((c >= 0x1100) && (c <= 0x11ff))
 		return 1; // Korean jamo
 
-	if ((c >= 0x2800) && (c <= 0x28ff))
+	if (0 /* (c >= 0x2800) && (c <= 0x28ff) */)
 		return 1; // braille
 
 	if ((c > 0x3040) && (c <= 0xa700))

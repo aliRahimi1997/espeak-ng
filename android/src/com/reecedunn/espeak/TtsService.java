@@ -349,7 +349,8 @@ public class TtsService extends TextToSpeechService {
             return;
         }
 
-text = text.replaceAll("[\\s\u200C]*[\u2800-\u28FF]+[\\s\u200C]*", " ");
+        text = text.replace((char) 0x2800, ' ');
+        text = text.replaceAll("[\\u2800-\\u28FF]+", " ");
         if (DEBUG) {
             Log.i(TAG, "Received synthesis request: {language=\"" + voice.name + "\"}");
 

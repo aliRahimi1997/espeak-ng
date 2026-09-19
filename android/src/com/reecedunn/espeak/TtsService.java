@@ -409,7 +409,6 @@ public class TtsService extends TextToSpeechService {
             }
         }
 
-        // اصلاح هوشمند صفر زمان (مثل تبدیل 01:24 به 1:24 بدون آسیب به شماره تلفن)
         text = text.replaceAll("(?<!\\d)0+(?=\\d:)", "");
 
         if (!isSsml) {
@@ -420,21 +419,23 @@ public class TtsService extends TextToSpeechService {
             String prosodyChars = ".,!?;،؛؟"; 
             String regexAllPunct;
             
-            if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
-                regexAllPunct = "[\\p{P}\\p{S}&&[^" + prosodyChars + "']]";
-                text = text.replaceAll(regexAllPunct, " ");
-            } else if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
-                text = text.replaceAll("[\"()\\[\\]{}\\-«»]", " ");
-} else if (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
-            if (!isCustomValid) {
-                regexAllPunct = "[\\p{P}\\p{Sm}&&[^" + prosodyChars + "']]";
-            } else {
-                String customChars = settings.getPunctuationCharacters();
-                String escaped = customChars.replaceAll("([\\\\\\.\\[\\]\\^\\-&\\+\\*\\?\\(\\)\\{\\}\\$\\|])", "\\\\$1");
-                regexAllPunct = "[\\p{P}\\p{Sm}&&[^" + prosodyChars + escaped + "']]";
+            if (text.trim().length() > 1) {
+                if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
+                    regexAllPunct = "[\\p{P}\\p{Sm}&&[^" + prosodyChars + "']]";
+                    text = text.replaceAll(regexAllPunct, " ");
+                } else if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
+                    text = text.replaceAll("[\"()\\[\\]{}\\-«»]", " ");
+                } else if (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
+                    if (!isCustomValid) {
+                        regexAllPunct = "[\\p{P}\\p{Sm}&&[^" + prosodyChars + "']]";
+                    } else {
+                        String customChars = settings.getPunctuationCharacters();
+                        String escaped = customChars.replaceAll("([\\\\\\.\\[\\]\\^\\-&\\+\\*\\?\\(\\)\\{\\}\\$\\|])", "\\\\$1");
+                        regexAllPunct = "[\\p{P}\\p{Sm}&&[^" + prosodyChars + escaped + "']]";
+                    }
+                    text = text.replaceAll(regexAllPunct, " ");
+                }
             }
-            text = text.replaceAll(regexAllPunct, " ");
-        }
         }
 
         mSynthText = text;
@@ -460,7 +461,6 @@ public class TtsService extends TextToSpeechService {
         mEngine.PitchRange.setValue(settings.getPitchRange());
         mEngine.Volume.setValue(settings.getVolume());
         
-        // نگاشت سطح سفارشی (3) به سطح معتبر برای موتور (2) جهت جلوگیری از کرش یا ریست شدن
         int enginePunctLevel = settings.getPunctuationLevel();
         if (enginePunctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
             enginePunctLevel = SpeechSynthesis.PUNCT_SOME; 

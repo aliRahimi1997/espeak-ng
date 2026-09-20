@@ -419,6 +419,7 @@ public class TtsService extends TextToSpeechService {
                     
                     String customChars = settings.getPunctuationCharacters();
                     if (!isCustomValid) customChars = "";
+                    
                     String allowedChars = ".,!?;،؛؟" + customChars;
 
                     StringBuilder sb = new StringBuilder(text.length());

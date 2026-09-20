@@ -313,19 +313,6 @@ public class TtsService extends TextToSpeechService {
         return mAnchorOffset;
     }
 
-    private String filterPersianDates(String text) {
-        if (text == null || text.isEmpty()) return text;
-        if (text.trim().equals("\u0648")) {
-            return "\u0648\u0627\u0648";
-        }
-        text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " ");
-        text = text.replaceAll("(?<=[a-zA-Z\\u0600-\\u06FF])-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " ");
-        text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?=[a-zA-Z\\u0600-\\u06FF])", " ");
-        text = text.replaceAll("(?<=[a-zA-Z\\u0600-\\u06FF])-(?![0-9\\u0660-\\u0669\\u06F0-\\u06F9a-zA-Z\\u0600-\\u06FF])", "");
-        text = text.replaceAll("(?<=\\s|^)\u200C|\u200C(?=\\s|$)", "");
-        return text;
-    }
-
     @Override
     protected synchronized void onSynthesizeText(SynthesisRequest request, SynthesisCallback callback) {
         if (selectVoice(request) == TextToSpeech.ERROR) {
@@ -355,8 +342,13 @@ public class TtsService extends TextToSpeechService {
             Log.i(TAG, "Received synthesis request: {language=\"" + voice.name + "\"}");
         }
         
-        if (voice.name != null && voice.name.startsWith("fa")) {
-             text = filterPersianDates(text);
+        if (voice.name != null && voice.name.startsWith("fa") && text != null && !text.isEmpty()) {
+            if (text.trim().equals("\u0648")) {
+                text = "\u0648\u0627\u0648";
+            } else {
+text = text.replaceAll("(?<=\\s|^)-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " \u0645\u0646\u0641\u06CC\u0647 ");
+                text = text.replaceAll("(?<=\\s|^)\u200C|\u200C(?=\\s|$)", "");
+            }
         }
 
         int textOffset = 0;
@@ -410,47 +402,45 @@ public class TtsService extends TextToSpeechService {
             boolean isCustomValid = (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) && 
                                     (settings.getPunctuationCharacters() != null && !settings.getPunctuationCharacters().trim().isEmpty());
 
-            if (text.trim().length() > 1) {
-                if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
-                    text = text.replaceAll("[\\p{P}\\p{Sm}&&[^.,!?;،؛؟']]", " ");
-                } else if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
-                    text = text.replaceAll("[\"()\\[\\]{}\\-«»]", " ");
-                } else if (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
-                    
-                    String customChars = settings.getPunctuationCharacters();
-                    if (!isCustomValid) customChars = "";
-                    
-                    String allowedChars = ".,!?;،؛؟" + customChars;
+            if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
+                text = text.replaceAll("[\\p{P}\\p{Sm}&&[^.,!?;،؛؟']]", " ");
+            } else if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
+                text = text.replaceAll("[\"()\\[\\]{}\\-«»]", " ");
+            } else if (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
+                
+                String customChars = settings.getPunctuationCharacters();
+                if (!isCustomValid) customChars = "";
+                
+                String allowedChars = ".,!?;،؛؟" + customChars;
 
-                    StringBuilder sb = new StringBuilder(text.length());
-                    for (int i = 0; i < text.length(); i++) {
-                        char c = text.charAt(i);
-                        int type = Character.getType(c);
-                        
-                        boolean isPunct = (type == Character.CONNECTOR_PUNCTUATION ||
-                                           type == Character.DASH_PUNCTUATION ||
-                                           type == Character.START_PUNCTUATION ||
-                                           type == Character.END_PUNCTUATION ||
-                                           type == Character.OTHER_PUNCTUATION ||
-                                           type == Character.INITIAL_QUOTE_PUNCTUATION ||
-                                           type == Character.FINAL_QUOTE_PUNCTUATION);
-                                           
-                        boolean isSymbol = (type == Character.MATH_SYMBOL ||
-                                            type == Character.CURRENCY_SYMBOL ||
-                                            type == Character.MODIFIER_SYMBOL);
+                StringBuilder sb = new StringBuilder(text.length());
+                for (int i = 0; i < text.length(); i++) {
+                    char c = text.charAt(i);
+                    int type = Character.getType(c);
+                    
+                    boolean isPunct = (type == Character.CONNECTOR_PUNCTUATION ||
+                                       type == Character.DASH_PUNCTUATION ||
+                                       type == Character.START_PUNCTUATION ||
+                                       type == Character.END_PUNCTUATION ||
+                                       type == Character.OTHER_PUNCTUATION ||
+                                       type == Character.INITIAL_QUOTE_PUNCTUATION ||
+                                       type == Character.FINAL_QUOTE_PUNCTUATION);
+                                       
+                    boolean isSymbol = (type == Character.MATH_SYMBOL ||
+                                        type == Character.CURRENCY_SYMBOL ||
+                                        type == Character.MODIFIER_SYMBOL);
 
-                        if (isPunct || isSymbol) {
-                            if (allowedChars.indexOf(c) != -1) {
-                                sb.append(c);
-                            } else {
-                                sb.append(' ');
-                            }
-                        } else {
+                    if (isPunct || isSymbol) {
+                        if (allowedChars.indexOf(c) != -1) {
                             sb.append(c);
+                        } else {
+                            sb.append(' ');
                         }
+                    } else {
+                        sb.append(c);
                     }
-                    text = sb.toString();
                 }
+                text = sb.toString();
             }
         }
 
@@ -478,12 +468,15 @@ public class TtsService extends TextToSpeechService {
         mEngine.Volume.setValue(settings.getVolume());
         
         int enginePunctLevel = settings.getPunctuationLevel();
+        String enginePunctChars = settings.getPunctuationCharacters();
+        
         if (enginePunctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
-            enginePunctLevel = SpeechSynthesis.PUNCT_SOME; 
+            enginePunctLevel = SpeechSynthesis.PUNCT_ALL; 
+            enginePunctChars = ""; 
         }
         mEngine.Punctuation.setValue(enginePunctLevel);
+        mEngine.setPunctuationCharacters(enginePunctChars);
         
-        mEngine.setPunctuationCharacters(settings.getPunctuationCharacters());
         mEngine.synthesize(text, isSsml);
     }
 

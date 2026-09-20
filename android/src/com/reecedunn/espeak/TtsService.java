@@ -416,22 +416,24 @@ public class TtsService extends TextToSpeechService {
             boolean isCustomValid = (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) && 
                                     (settings.getPunctuationCharacters() != null && !settings.getPunctuationCharacters().trim().isEmpty());
 
-            String prosodyChars = ".,!?;،؛؟"; 
+            String protectedChars = ".,!?;،؛؟+"; 
+            String escapedProtected = protectedChars.replaceAll("([\\\\\\.\\[\\]\\^\\-&\\+\\*\\?\\(\\)\\{\\}\\$\\|])", "\\\\$1");
+            
             String regexAllPunct;
             
             if (text.trim().length() > 1) {
                 if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
-                    regexAllPunct = "(?![" + prosodyChars + "'])[\\p{P}\\p{Sm}]";
+                    regexAllPunct = "(?![" + escapedProtected + "'])[\\p{P}\\p{Sm}]";
                     text = text.replaceAll(regexAllPunct, " ");
                 } else if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
                     text = text.replaceAll("[\"()\\[\\]{}\\-«»]", " ");
                 } else if (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
                     if (!isCustomValid) {
-                        regexAllPunct = "(?![" + prosodyChars + "'])[\\p{P}\\p{Sm}]";
+                        regexAllPunct = "(?![" + escapedProtected + "'])[\\p{P}\\p{Sm}]";
                     } else {
                         String customChars = settings.getPunctuationCharacters();
-                        String escaped = customChars.replaceAll("([\\\\\\.\\[\\]\\^\\-&\\+\\*\\?\\(\\)\\{\\}\\$\\|])", "\\\\$1");
-                        regexAllPunct = "(?![" + prosodyChars + escaped + "'])[\\p{P}\\p{Sm}]";
+                        String escapedCustom = customChars.replaceAll("([\\\\\\.\\[\\]\\^\\-&\\+\\*\\?\\(\\)\\{\\}\\$\\|])", "\\\\$1");
+                        regexAllPunct = "(?![" + escapedProtected + escapedCustom + "'])[\\p{P}\\p{Sm}]";
                     }
                     text = text.replaceAll(regexAllPunct, " ");
                 }

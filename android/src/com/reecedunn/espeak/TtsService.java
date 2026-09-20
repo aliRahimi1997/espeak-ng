@@ -353,12 +353,6 @@ public class TtsService extends TextToSpeechService {
         text = text.replaceAll("[\\u2800-\\u28FF]+", " ");
         if (DEBUG) {
             Log.i(TAG, "Received synthesis request: {language=\"" + voice.name + "\"}");
-
-            final Bundle params = request.getParams();
-            for (String key : params.keySet()) {
-                Log.v(TAG,
-                        "Synthesis request contained param {" + key + ", " + params.get(key) + "}");
-            }
         }
         
         if (voice.name != null && voice.name.startsWith("fa")) {
@@ -416,26 +410,45 @@ public class TtsService extends TextToSpeechService {
             boolean isCustomValid = (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) && 
                                     (settings.getPunctuationCharacters() != null && !settings.getPunctuationCharacters().trim().isEmpty());
 
-            String protectedChars = ".,!?;،؛؟+"; 
-            String escapedProtected = protectedChars.replaceAll("([\\\\\\.\\[\\]\\^\\-&\\+\\*\\?\\(\\)\\{\\}\\$\\|])", "\\\\$1");
-            
-            String regexAllPunct;
-            
             if (text.trim().length() > 1) {
                 if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
-                    regexAllPunct = "(?![" + escapedProtected + "'])[\\p{P}\\p{Sm}]";
-                    text = text.replaceAll(regexAllPunct, " ");
+                    text = text.replaceAll("[\\p{P}\\p{Sm}&&[^.,!?;،؛؟']]", " ");
                 } else if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
                     text = text.replaceAll("[\"()\\[\\]{}\\-«»]", " ");
                 } else if (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
-                    if (!isCustomValid) {
-                        regexAllPunct = "(?![" + escapedProtected + "'])[\\p{P}\\p{Sm}]";
-                    } else {
-                        String customChars = settings.getPunctuationCharacters();
-                        String escapedCustom = customChars.replaceAll("([\\\\\\.\\[\\]\\^\\-&\\+\\*\\?\\(\\)\\{\\}\\$\\|])", "\\\\$1");
-                        regexAllPunct = "(?![" + escapedProtected + escapedCustom + "'])[\\p{P}\\p{Sm}]";
+                    
+                    String customChars = settings.getPunctuationCharacters();
+                    if (!isCustomValid) customChars = "";
+                    String allowedChars = ".,!?;،؛؟" + customChars;
+
+                    StringBuilder sb = new StringBuilder(text.length());
+                    for (int i = 0; i < text.length(); i++) {
+                        char c = text.charAt(i);
+                        int type = Character.getType(c);
+                        
+                        boolean isPunct = (type == Character.CONNECTOR_PUNCTUATION ||
+                                           type == Character.DASH_PUNCTUATION ||
+                                           type == Character.START_PUNCTUATION ||
+                                           type == Character.END_PUNCTUATION ||
+                                           type == Character.OTHER_PUNCTUATION ||
+                                           type == Character.INITIAL_QUOTE_PUNCTUATION ||
+                                           type == Character.FINAL_QUOTE_PUNCTUATION);
+                                           
+                        boolean isSymbol = (type == Character.MATH_SYMBOL ||
+                                            type == Character.CURRENCY_SYMBOL ||
+                                            type == Character.MODIFIER_SYMBOL);
+
+                        if (isPunct || isSymbol) {
+                            if (allowedChars.indexOf(c) != -1) {
+                                sb.append(c);
+                            } else {
+                                sb.append(' ');
+                            }
+                        } else {
+                            sb.append(c);
+                        }
                     }
-                    text = text.replaceAll(regexAllPunct, " ");
+                    text = sb.toString();
                 }
             }
         }

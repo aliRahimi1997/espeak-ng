@@ -473,11 +473,6 @@ public class TtsService extends TextToSpeechService {
         int enginePunctLevel = settings.getPunctuationLevel();
         String enginePunctChars = settings.getPunctuationCharacters();
         
-        if (enginePunctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
-            enginePunctLevel = SpeechSynthesis.PUNCT_SOME; 
-            enginePunctChars = ""; 
-        }
-        
         mEngine.Punctuation.setValue(enginePunctLevel);
         mEngine.setPunctuationCharacters(enginePunctChars);
         

@@ -411,9 +411,9 @@ text = text.replaceAll("(?<=\\s|^)-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " \
                 String customChars = settings.getPunctuationCharacters();
                 if (!isCustomValid) customChars = "";
                 
-                String allowedChars = ".,!?;،؛؟" + customChars;
+                String allowedChars = ".,!?;،؛؟'" + customChars;
 
-                StringBuilder sb = new StringBuilder(text.length());
+                StringBuilder sb = new StringBuilder(text.length() * 2);
                 for (int i = 0; i < text.length(); i++) {
                     char c = text.charAt(i);
                     int type = Character.getType(c);
@@ -432,7 +432,11 @@ text = text.replaceAll("(?<=\\s|^)-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " \
 
                     if (isPunct || isSymbol) {
                         if (allowedChars.indexOf(c) != -1) {
-                            sb.append(c);
+                            if (customChars.indexOf(c) != -1) {
+                                sb.append(' ').append(c).append(' ');
+                            } else {
+                                sb.append(c);
+                            }
                         } else {
                             sb.append(' ');
                         }

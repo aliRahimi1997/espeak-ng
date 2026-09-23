@@ -247,7 +247,6 @@ public class TtsService extends TextToSpeechService {
     @Override
     protected void onStop() {
         Log.i(TAG, "Received stop request.");
-
         mEngine.stop();
     }
 
@@ -346,7 +345,7 @@ public class TtsService extends TextToSpeechService {
             if (text.trim().equals("\u0648")) {
                 text = "\u0648\u0627\u0648";
             } else {
-text = text.replaceAll("(?<=\\s|^)-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " \u0645\u0646\u0641\u06CC\u0647 ");
+                text = text.replaceAll("(?<=\\s|^)-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " \u0645\u0646\u0641\u06CC\u0647 ");
                 text = text.replaceAll("(?<=\\s|^)\u200C|\u200C(?=\\s|$)", "");
             }
         }
@@ -476,6 +475,7 @@ text = text.replaceAll("(?<=\\s|^)-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " \
         
         if (enginePunctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
             enginePunctLevel = SpeechSynthesis.PUNCT_SOME; 
+            enginePunctChars = ""; 
         }
         
         mEngine.Punctuation.setValue(enginePunctLevel);

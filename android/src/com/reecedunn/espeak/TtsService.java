@@ -470,6 +470,10 @@ text = text.replaceAll("(?<=\\s|^)-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " \
         int enginePunctLevel = settings.getPunctuationLevel();
         String enginePunctChars = settings.getPunctuationCharacters();
         
+        if (enginePunctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
+            enginePunctLevel = SpeechSynthesis.PUNCT_SOME; 
+        }
+        
         mEngine.Punctuation.setValue(enginePunctLevel);
         mEngine.setPunctuationCharacters(enginePunctChars);
         

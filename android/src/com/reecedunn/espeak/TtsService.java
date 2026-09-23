@@ -410,7 +410,7 @@ public class TtsService extends TextToSpeechService {
                 String customChars = settings.getPunctuationCharacters();
                 if (!isCustomValid) customChars = "";
                 
-                String allowedChars = ".,!?;،؛؟'" + customChars;
+                String allowedChars = ".,!?;،؛؟':" + customChars;
 
                 StringBuilder sb = new StringBuilder(text.length() * 2);
                 for (int i = 0; i < text.length(); i++) {
@@ -431,7 +431,20 @@ public class TtsService extends TextToSpeechService {
 
                     if (isPunct || isSymbol) {
                         if (allowedChars.indexOf(c) != -1) {
-                            if (customChars.indexOf(c) != -1) {
+                            boolean isColon = (c == ':');
+                            boolean isBetweenDigits = false;
+                            
+                            if (isColon && i > 0 && i < text.length() - 1) {
+                                if (Character.isDigit(text.charAt(i - 1)) && Character.isDigit(text.charAt(i + 1))) {
+                                    isBetweenDigits = true;
+                                }
+                            }
+                            
+                            if (isBetweenDigits) {
+                                sb.append(" \u200C").append(c).append("\u200C ");
+                            } else if (isColon) {
+                                sb.append(c);
+                            } else if (customChars.indexOf(c) != -1) {
                                 sb.append(" \u200C").append(c).append("\u200C ");
                             } else {
                                 sb.append(c);

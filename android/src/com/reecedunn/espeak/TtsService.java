@@ -431,7 +431,26 @@ public class TtsService extends TextToSpeechService {
                                         type == Character.MODIFIER_SYMBOL);
 
                     if (isPunct || isSymbol) {
-                        if (allowedChars.indexOf(c) != -1) {
+                        if (c == ':') {
+                            boolean isCustom = customChars.indexOf(':') != -1;
+                            boolean isBetweenDigits = false;
+                            
+                            if (i > 0 && i < text.length() - 1) {
+                                if (Character.isDigit(text.charAt(i - 1)) && Character.isDigit(text.charAt(i + 1))) {
+                                    isBetweenDigits = true;
+                                }
+                            }
+                            
+                            if (isBetweenDigits) {
+                                if (isCustom) {
+                                    sb.append(" \u200C:\u200C ");
+                                } else {
+                                    sb.append(' ');
+                                }
+                            } else {
+                                sb.append('،');
+                            }
+                        } else if (allowedChars.indexOf(c) != -1) {
                             if (customChars.indexOf(c) != -1) {
                                 sb.append(" \u200C").append(c).append("\u200C ");
                             } else {

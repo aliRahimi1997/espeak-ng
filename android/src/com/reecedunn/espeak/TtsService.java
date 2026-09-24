@@ -346,7 +346,7 @@ public class TtsService extends TextToSpeechService {
                 text = "\u0648\u0627\u0648";
             } else {
                 text = text.replaceAll("(?<![0-9\\u0660-\\u0669\\u06F0-\\u06F9])[-−](?=\\s*[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " \u0645\u0646\u0641\u06CC\u0647 ");
-text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?![0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " ");
+                text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?![0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " ");
                 text = text.replaceAll("(?<=\\s|^)\u200C|\u200C(?=\\s|$)", "");
             }
         }
@@ -395,6 +395,8 @@ text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?![0-9\\u0660-
             }
         }
 
+        text = text.replaceAll("(?<![0-9\\u0660-\\u0669\\u06F0-\\u06F9])[0\\u0660\\u06F0]+(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9]:)", "");
+
         if (!isSsml) {
             int punctLevel = settings.getPunctuationLevel();
             boolean isCustomValid = (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) && 
@@ -405,7 +407,6 @@ text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?![0-9\\u0660-
             } else if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
                 text = text.replaceAll("[\"()\\[\\]{}\\-«»]", " ");
             } else if (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
-                text = text.replaceAll("(?<!\\d)0+(?=\\d:)", "");
                 
                 String customChars = settings.getPunctuationCharacters();
                 if (!isCustomValid) customChars = "";

@@ -98,6 +98,10 @@ public class TtsSettingsActivity extends PreferenceActivity {
             editor.putBoolean(VoiceSettings.PREF_SPEAK_DIGITS, false);
         }
 
+        if (!prefs.contains(VoiceSettings.PREF_PUNCTUATION_LEVEL)) {
+            editor.putString(VoiceSettings.PREF_PUNCTUATION_LEVEL, Integer.toString(SpeechSynthesis.PUNCT_SOME));
+        }
+
         editor.commit();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)

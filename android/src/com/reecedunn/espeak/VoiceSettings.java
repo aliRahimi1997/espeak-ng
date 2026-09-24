@@ -114,7 +114,7 @@ public class VoiceSettings {
         int min = mEngine.Punctuation.getMinValue();
         int max = mEngine.Punctuation.getMaxValue();
 
-        int level = getPreferenceValue(PREF_PUNCTUATION_LEVEL, mEngine.Punctuation.getDefaultValue());
+        int level = getPreferenceValue(PREF_PUNCTUATION_LEVEL, SpeechSynthesis.PUNCT_SOME);
         if (level > max) level = max;
         if (level < min) level = min;
         return level;

@@ -432,20 +432,7 @@ public class TtsService extends TextToSpeechService {
 
                     if (isPunct || isSymbol) {
                         if (allowedChars.indexOf(c) != -1) {
-                            boolean isColon = (c == ':');
-                            boolean isBetweenDigits = false;
-                            
-                            if (isColon && i > 0 && i < text.length() - 1) {
-                                if (Character.isDigit(text.charAt(i - 1)) && Character.isDigit(text.charAt(i + 1))) {
-                                    isBetweenDigits = true;
-                                }
-                            }
-                            
-                            if (isBetweenDigits) {
-                                sb.append(" \u200C").append(c).append("\u200C ");
-                            } else if (isColon) {
-                                sb.append(c);
-                            } else if (customChars.indexOf(c) != -1) {
+                            if (customChars.indexOf(c) != -1) {
                                 sb.append(" \u200C").append(c).append("\u200C ");
                             } else {
                                 sb.append(c);

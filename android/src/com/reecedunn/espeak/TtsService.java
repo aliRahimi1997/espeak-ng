@@ -396,6 +396,7 @@ public class TtsService extends TextToSpeechService {
         }
 
         text = text.replaceAll("(?<![0-9\\u0660-\\u0669\\u06F0-\\u06F9])[0\\u0660\\u06F0]+(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9]:)", "");
+        text = text.replaceAll("(?<=\\s|^)[,،](?=\\S)", " ");
 
         if (!isSsml) {
             int punctLevel = settings.getPunctuationLevel();
@@ -494,7 +495,7 @@ public class TtsService extends TextToSpeechService {
         String enginePunctChars = settings.getPunctuationCharacters();
         
         if (enginePunctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
-            enginePunctLevel = SpeechSynthesis.PUNCT_SOME; 
+            enginePunctLevel = SpeechSynthesis.PUNCT_NONE; 
             enginePunctChars = ""; 
         }
         

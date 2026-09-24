@@ -405,7 +405,7 @@ text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?![0-9\\u0660-
             } else if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
                 text = text.replaceAll("[\"()\\[\\]{}\\-«»]", " ");
             } else if (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
-                text = text.replaceAll("(?<!\\d)0(?=0:)", "");
+                text = text.replaceAll("(?<!\\d)0+(?=\\d:)", "");
                 
                 String customChars = settings.getPunctuationCharacters();
                 if (!isCustomValid) customChars = "";

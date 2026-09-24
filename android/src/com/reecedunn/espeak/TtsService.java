@@ -411,7 +411,7 @@ public class TtsService extends TextToSpeechService {
                 String customChars = settings.getPunctuationCharacters();
                 if (!isCustomValid) customChars = "";
                 
-                String allowedChars = ".,!?;،؛؟':" + customChars;
+                String allowedChars = ".,!?;،؛؟'" + customChars;
 
                 StringBuilder sb = new StringBuilder(text.length() * 2);
                 for (int i = 0; i < text.length(); i++) {

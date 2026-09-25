@@ -345,7 +345,7 @@ public class TtsService extends TextToSpeechService {
             if (text.trim().equals("\u0648")) {
                 text = "\u0648\u0627\u0648";
             } else {
-                text = text.replaceAll("(?<![0-9\\u0660-\\u0669\\u06F0-\\u06F9])[-−](?=\\s*[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " \u0645\u0646\u0641\u06CC\u0647 ");
+                text = text.replaceAll("(?<![0-9\\u0660-\\u0669\\u06F0-\\u06F9])[-−](?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " \u0645\u0646\u0641\u06CC\u0647 ");
                 text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?![0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " ");
                 text = text.replaceAll("(?<=\\s|^)\u200C|\u200C(?=\\s|$)", "");
             }
@@ -449,7 +449,7 @@ public class TtsService extends TextToSpeechService {
                                     sb.append(' ');
                                 }
                             } else {
-                                sb.append('،');
+                                sb.append(c);
                             }
                         } else if (allowedChars.indexOf(c) != -1) {
                             if (customChars.indexOf(c) != -1) {

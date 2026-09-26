@@ -31,6 +31,8 @@ public final class EmojiProcessor {
         addRange(0x2934, 0x2935);
         addRange(0xE0020, 0xE007F);
 
+        addRange(0x2030, 0x2059);
+
         int[] singlePoints = {
             0x3297,
             0x3299,

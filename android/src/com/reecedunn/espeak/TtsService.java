@@ -426,12 +426,6 @@ public class TtsService extends TextToSpeechService {
                                                type == Character.NON_SPACING_MARK);
 
                     if (isPunctOrSymbol) {
-                        boolean isSymbol = (type == Character.MATH_SYMBOL ||
-                                            type == Character.CURRENCY_SYMBOL ||
-                                            type == Character.MODIFIER_SYMBOL ||
-                                            type == Character.OTHER_SYMBOL ||
-                                            type == Character.NON_SPACING_MARK);
-
                         boolean isInWordApostrophe = ((c == '\'' || c == '\u2019') && i > 0 && i + charCount < len &&
                                                       Character.isLetterOrDigit(text.codePointAt(i - 1)) &&
                                                       Character.isLetterOrDigit(text.codePointAt(i + charCount)));
@@ -443,7 +437,6 @@ public class TtsService extends TextToSpeechService {
                             sb.appendCodePoint(c);
                         } else if (isTerminalPunct && isAtEnd) {
                             sb.appendCodePoint(c);
-                        } else if (isSymbol) {
                         } else {
                             sb.append(' ');
                         }

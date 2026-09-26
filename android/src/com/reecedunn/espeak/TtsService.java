@@ -333,6 +333,7 @@ public class TtsService extends TextToSpeechService {
             return;
         }
 
+        text = text.trim();
         text = text.replace((char) 0x2800, ' ');
         text = text.replaceAll("[\\u2800-\\u28FF]+", " ");
         if (DEBUG) {
@@ -340,6 +341,7 @@ public class TtsService extends TextToSpeechService {
         }
         
         if (voice.name != null && voice.name.startsWith("fa") && text != null && !text.isEmpty()) {
+            text = text.replace('؟', '?');
             if (text.trim().equals("\u0648")) {
                 text = "\u0648\u0627\u0648";
             } else {
@@ -419,10 +421,12 @@ public class TtsService extends TextToSpeechService {
                                                type == Character.FINAL_QUOTE_PUNCTUATION ||
                                                type == Character.MATH_SYMBOL ||
                                                type == Character.CURRENCY_SYMBOL ||
-                                               type == Character.MODIFIER_SYMBOL);
+                                               type == Character.MODIFIER_SYMBOL ||
+                                               type == Character.OTHER_SYMBOL ||
+                                               type == Character.NON_SPACING_MARK);
 
                     if (isPunctOrSymbol) {
-                        boolean isTerminalPunct = (c == '.' || c == '!' || c == '؟' || c == '،' || c == '؛' || c == '?');
+                        boolean isTerminalPunct = (c == '.' || c == '!' || c == '؟' || c == '،' || c == '؛' || c == '?' || c == ':');
                         boolean isAtEnd = (i + charCount >= len) || Character.isWhitespace(text.codePointAt(i + charCount));
 
                         if (isTerminalPunct && isAtEnd) {

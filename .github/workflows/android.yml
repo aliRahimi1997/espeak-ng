@@ -3,7 +3,7 @@ name: Android
 on:
   workflow_dispatch:
   push:
-    branches: [ master ]
+    branches: [ test-master ]
   pull_request:
     branches: [ master ]
 

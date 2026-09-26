@@ -426,10 +426,16 @@ public class TtsService extends TextToSpeechService {
                                                type == Character.NON_SPACING_MARK);
 
                     if (isPunctOrSymbol) {
-                        boolean isTerminalPunct = (c == '.' || c == ',' || c == '!' || c == '؟' || c == '،' || c == '؛' || c == '?' || c == ':');
+                        boolean isInWordApostrophe = ((c == '\'' || c == '\u2019') && i > 0 && i + charCount < len &&
+                                                      Character.isLetterOrDigit(text.codePointAt(i - 1)) &&
+                                                      Character.isLetterOrDigit(text.codePointAt(i + charCount)));
+
+                        boolean isTerminalPunct = (c == '.' || c == '!' || c == '؟' || c == '،' || c == '؛' || c == '?' || c == ':' || c == ',');
                         boolean isAtEnd = (i + charCount >= len) || Character.isWhitespace(text.codePointAt(i + charCount));
 
-                        if (isTerminalPunct && isAtEnd) {
+                        if (isInWordApostrophe) {
+                            sb.appendCodePoint(c);
+                        } else if (isTerminalPunct && isAtEnd) {
                             sb.appendCodePoint(c);
                         } else {
                             sb.append(' ');

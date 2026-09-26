@@ -3,9 +3,7 @@ package com.reecedunn.espeak;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.media.AudioTrack;
 import android.os.Build;
-import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.speech.tts.SynthesisCallback;
 import android.speech.tts.SynthesisRequest;
@@ -404,8 +402,41 @@ public class TtsService extends TextToSpeechService {
                                     (settings.getPunctuationCharacters() != null && !settings.getPunctuationCharacters().trim().isEmpty());
 
             if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
-                text = text.replaceAll("(?<=\\s|^)[^\\p{L}\\p{N}\\s]+(?=\\S)", " ");
-                text = text.replaceAll("[\\p{P}\\p{Sm}&&[^.,!?;،؛؟'\\-]]", " ");
+                StringBuilder sb = new StringBuilder(text.length());
+                int len = text.length();
+                
+                for (int i = 0; i < len; ) {
+                    int c = text.codePointAt(i);
+                    int charCount = Character.charCount(c);
+                    int type = Character.getType(c);
+
+                    boolean isPunctOrSymbol = (type == Character.CONNECTOR_PUNCTUATION ||
+                                               type == Character.DASH_PUNCTUATION ||
+                                               type == Character.START_PUNCTUATION ||
+                                               type == Character.END_PUNCTUATION ||
+                                               type == Character.OTHER_PUNCTUATION ||
+                                               type == Character.INITIAL_QUOTE_PUNCTUATION ||
+                                               type == Character.FINAL_QUOTE_PUNCTUATION ||
+                                               type == Character.MATH_SYMBOL ||
+                                               type == Character.CURRENCY_SYMBOL ||
+                                               type == Character.MODIFIER_SYMBOL);
+
+                    if (isPunctOrSymbol) {
+                        boolean isTerminalPunct = (c == '.' || c == '!' || c == '؟' || c == '،' || c == '؛' || c == '?');
+                        boolean isAtEnd = (i + charCount >= len) || Character.isWhitespace(text.codePointAt(i + charCount));
+
+                        if (isTerminalPunct && isAtEnd) {
+                            sb.appendCodePoint(c);
+                        } else {
+                            sb.append(' ');
+                        }
+                    } else {
+                        sb.appendCodePoint(c);
+                    }
+                    
+                    i += charCount;
+                }
+                text = sb.toString();
             } else if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
                 text = text.replaceAll("[\"()\\[\\]{}\\-«»]", " ");
             } else if (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {

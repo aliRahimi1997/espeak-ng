@@ -345,7 +345,7 @@ public class TtsService extends TextToSpeechService {
             if (text.trim().equals("\u0648")) {
                 text = "\u0648\u0627\u0648";
             } else {
-                text = text.replaceAll("(?<![0-9\\u0660-\\u0669\\u06F0-\\u06F9])[-−](?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " \u0645\u0646\u0641\u06CC\u0647 ");
+                text = text.replaceAll("(?<![0-9\\u0660-\\u0669\\u06F0-\\u06F9])[-−](?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", "___NEG_SIGN___");
                 text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?![0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " ");
                 text = text.replaceAll("(?<=\\s|^)\u200C|\u200C(?=\\s|$)", "");
             }
@@ -404,7 +404,7 @@ public class TtsService extends TextToSpeechService {
                                     (settings.getPunctuationCharacters() != null && !settings.getPunctuationCharacters().trim().isEmpty());
 
             if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
-                text = text.replaceAll("[\\p{P}\\p{Sm}&&[^.,!?;،؛؟']]", " ");
+                text = text.replaceAll("[^\\p{L}\\p{N}\\s_]", " ");
             } else if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
                 text = text.replaceAll("[\"()\\[\\]{}\\-«»]", " ");
             } else if (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
@@ -467,6 +467,8 @@ public class TtsService extends TextToSpeechService {
                 text = sb.toString();
             }
         }
+
+        text = text.replace("___NEG_SIGN___", " \u0645\u0646\u0641\u06CC\u0647 ");
 
         mSynthText = text;
         mSynthTextOffset = textOffset;

@@ -405,7 +405,6 @@ public class TtsService extends TextToSpeechService {
 
             if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
                 text = text.replaceAll("(?<=\\s|^)[\\p{P}\\p{Sm}&&[^\\-]]+(?=\\S)", " ");
-                text = text.replaceAll("[\\p{P}\\p{Sm}&&[^.,!?;،؛؟'\\-]]", " ");
             } else if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
                 text = text.replaceAll("[\"()\\[\\]{}\\-«»]", " ");
             } else if (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {

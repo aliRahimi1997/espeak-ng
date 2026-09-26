@@ -426,7 +426,7 @@ public class TtsService extends TextToSpeechService {
                                                type == Character.NON_SPACING_MARK);
 
                     if (isPunctOrSymbol) {
-                        boolean isTerminalPunct = (c == '.' || c == '!' || c == '؟' || c == '،' || c == '؛' || c == '?' || c == ':');
+                        boolean isTerminalPunct = (c == '.' || c == ',' || c == '!' || c == '؟' || c == '،' || c == '؛' || c == '?' || c == ':');
                         boolean isAtEnd = (i + charCount >= len) || Character.isWhitespace(text.codePointAt(i + charCount));
 
                         if (isTerminalPunct && isAtEnd) {

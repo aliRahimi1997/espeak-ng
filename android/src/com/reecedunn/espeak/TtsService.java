@@ -345,7 +345,7 @@ public class TtsService extends TextToSpeechService {
             if (text.trim().equals("\u0648")) {
                 text = "\u0648\u0627\u0648";
             } else {
-                text = text.replaceAll("(?<=\\s|^)-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " \u0645\u0646\u0641\u06CC\u0647 ");
+                text = text.replaceAll("(?<=\\s|^)-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9]+(?:\\.[0-9\\u0660-\\u0669\\u06F0-\\u06F9]*)?)", " \u0645\u0646\u0641\u06CC\u0647 ");
                 text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?![0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " ");
                 text = text.replaceAll("(?<=\\s|^)\u200C|\u200C(?=\\s|$)", "");
             }
@@ -499,6 +499,35 @@ public class TtsService extends TextToSpeechService {
                                     sb.appendCodePoint(c);
                                 }
                             } else if (isCustomValid && customChars.indexOf(':') != -1) {
+                                if (isAfterWord) sb.append(" \u200C");
+                                sb.appendCodePoint(c);
+                                sb.append("\u200C ");
+                            } else if (isTerminalPunct && isAtEnd && isAfterWord) {
+                                sb.appendCodePoint(c);
+                            } else {
+                                for (int k = 0; k < charCount; k++) {
+                                    sb.append(' ');
+                                }
+                            }
+                        } else if (c == ',') {
+                            boolean isBetweenDigits = false;
+                            
+                            if (i > 0 && i + charCount < len) {
+                                int prevCp = text.codePointBefore(i);
+                                int nextCp = text.codePointAt(i + charCount);
+                                
+                                if (Character.isDigit(prevCp) && Character.isDigit(nextCp)) {
+                                    isBetweenDigits = true;
+                                }
+                            }
+
+                            if (isBetweenDigits) {
+                                if (isCustomValid && customChars.indexOf(',') != -1) {
+                                    sb.append(" \u200C,\u200C ");
+                                } else {
+                                    sb.appendCodePoint(c);
+                                }
+                            } else if (isCustomValid && customChars.indexOf(',') != -1) {
                                 if (isAfterWord) sb.append(" \u200C");
                                 sb.appendCodePoint(c);
                                 sb.append("\u200C ");

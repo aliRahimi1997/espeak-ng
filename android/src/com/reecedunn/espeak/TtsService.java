@@ -408,7 +408,9 @@ public class TtsService extends TextToSpeechService {
             } else if (punctLevel == SpeechSynthesis.PUNCT_NONE || punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
                 
                 String customChars = "";
-                if (isCustomValid) customChars = settings.getPunctuationCharacters();
+                if (isCustomValid) {
+                    customChars = settings.getPunctuationCharacters();
+                }
 
                 StringBuilder sb = new StringBuilder(text.length() * 2);
                 int len = text.length();

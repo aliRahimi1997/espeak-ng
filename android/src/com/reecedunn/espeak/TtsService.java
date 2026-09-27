@@ -425,7 +425,6 @@ public class TtsService extends TextToSpeechService {
                                                type == Character.CURRENCY_SYMBOL ||
                                                type == Character.MODIFIER_SYMBOL ||
                                                type == Character.OTHER_SYMBOL ||
-                                               type == Character.NON_SPACING_MARK ||
                                                isEmojiControl);
 
                     boolean isInWordApostrophe = ((c == '\'' || c == '\u2019') && i > 0 && i + charCount < len &&

@@ -403,8 +403,14 @@ public class TtsService extends TextToSpeechService {
             boolean isCustomValid = (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) && 
                                     (settings.getPunctuationCharacters() != null && !settings.getPunctuationCharacters().trim().isEmpty());
 
-            if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
-                StringBuilder sb = new StringBuilder(text.length());
+            if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
+                text = text.replaceAll("[\"()\\[\\]{}\\-«»]", " ");
+            } else if (punctLevel == SpeechSynthesis.PUNCT_NONE || punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
+                
+                String customChars = "";
+                if (isCustomValid) customChars = settings.getPunctuationCharacters();
+
+                StringBuilder sb = new StringBuilder(text.length() * 2);
                 int len = text.length();
                 
                 for (int i = 0; i < len; ) {
@@ -442,6 +448,27 @@ public class TtsService extends TextToSpeechService {
                     if (isPunctOrSymbol) {
                         if (isInWordApostrophe) {
                             sb.appendCodePoint(c);
+                        } else if (isCustomValid && customChars.indexOf(c) != -1) {
+                            if (c == ':') {
+                                boolean isBetweenDigits = false;
+                                if (i > 0 && i + charCount < len) {
+                                    if (Character.isDigit(text.codePointBefore(i)) && Character.isDigit(text.codePointAt(i + charCount))) {
+                                        isBetweenDigits = true;
+                                    }
+                                }
+                                
+                                if (isBetweenDigits) {
+                                    sb.append(" \u200C:\u200C ");
+                                } else {
+                                    if (isAfterWord) sb.append(" \u200C");
+                                    sb.appendCodePoint(c);
+                                    sb.append("\u200C ");
+                                }
+                            } else {
+                                if (isAfterWord) sb.append(" \u200C");
+                                sb.appendCodePoint(c);
+                                sb.append("\u200C ");
+                            }
                         } else if (isTerminalPunct && isAtEnd && isAfterWord) { 
                             sb.appendCodePoint(c);
                         } else {
@@ -454,66 +481,6 @@ public class TtsService extends TextToSpeechService {
                     }
                     
                     i += charCount;
-                }
-                text = sb.toString();
-            } else if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
-                text = text.replaceAll("[\"()\\[\\]{}\\-«»]", " ");
-            } else if (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
-                
-                String customChars = settings.getPunctuationCharacters();
-                if (!isCustomValid) customChars = "";
-                
-                String allowedChars = ".,!?;،؛؟'" + customChars;
-
-                StringBuilder sb = new StringBuilder(text.length() * 2);
-                for (int i = 0; i < text.length(); i++) {
-                    char c = text.charAt(i);
-                    int type = Character.getType(c);
-                    
-                    boolean isPunct = (type == Character.CONNECTOR_PUNCTUATION ||
-                                       type == Character.DASH_PUNCTUATION ||
-                                       type == Character.START_PUNCTUATION ||
-                                       type == Character.END_PUNCTUATION ||
-                                       type == Character.OTHER_PUNCTUATION ||
-                                       type == Character.INITIAL_QUOTE_PUNCTUATION ||
-                                       type == Character.FINAL_QUOTE_PUNCTUATION);
-                                       
-                    boolean isSymbol = (type == Character.MATH_SYMBOL ||
-                                        type == Character.CURRENCY_SYMBOL ||
-                                        type == Character.MODIFIER_SYMBOL);
-
-                    if (isPunct || isSymbol) {
-                        if (c == ':') {
-                            boolean isCustom = customChars.indexOf(':') != -1;
-                            boolean isBetweenDigits = false;
-                            
-                            if (i > 0 && i < text.length() - 1) {
-                                if (Character.isDigit(text.charAt(i - 1)) && Character.isDigit(text.charAt(i + 1))) {
-                                    isBetweenDigits = true;
-                                }
-                            }
-                            
-                            if (isBetweenDigits) {
-                                if (isCustom) {
-                                    sb.append(" \u200C:\u200C ");
-                                } else {
-                                    sb.append(' ');
-                                }
-                            } else {
-                                sb.append(c);
-                            }
-                        } else if (allowedChars.indexOf(c) != -1) {
-                            if (customChars.indexOf(c) != -1) {
-                                sb.append(" \u200C").append(c).append("\u200C ");
-                            } else {
-                                sb.append(c);
-                            }
-                        } else {
-                            sb.append(' ');
-                        }
-                    } else {
-                        sb.append(c);
-                    }
                 }
                 text = sb.toString();
             }

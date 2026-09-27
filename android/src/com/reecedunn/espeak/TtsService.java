@@ -412,6 +412,8 @@ public class TtsService extends TextToSpeechService {
                     int charCount = Character.charCount(c);
                     int type = Character.getType(c);
 
+                    boolean isEmojiControl = (c == 0xFE0F || c == 0x200D);
+
                     boolean isPunctOrSymbol = (type == Character.CONNECTOR_PUNCTUATION ||
                                                type == Character.DASH_PUNCTUATION ||
                                                type == Character.START_PUNCTUATION ||
@@ -423,29 +425,30 @@ public class TtsService extends TextToSpeechService {
                                                type == Character.CURRENCY_SYMBOL ||
                                                type == Character.MODIFIER_SYMBOL ||
                                                type == Character.OTHER_SYMBOL ||
-                                               type == Character.NON_SPACING_MARK);
+                                               type == Character.NON_SPACING_MARK ||
+                                               isEmojiControl);
+
+                    boolean isInWordApostrophe = ((c == '\'' || c == '\u2019') && i > 0 && i + charCount < len &&
+                                                  Character.isLetterOrDigit(text.codePointBefore(i)) && 
+                                                  Character.isLetterOrDigit(text.codePointAt(i + charCount)));
+
+                    boolean isTerminalPunct = (c == '.' || c == '!' || c == '؟' || c == '،' || c == '؛' || c == '?' || c == ':' || c == ',');
+                    boolean isAtEnd = (i + charCount >= len) || Character.isWhitespace(text.codePointAt(i + charCount));
+
+                    boolean isAfterWord = false;
+                    if (i > 0) {
+                        isAfterWord = !Character.isWhitespace(text.codePointBefore(i));
+                    }
 
                     if (isPunctOrSymbol) {
-                        boolean isSymbol = (type == Character.MATH_SYMBOL ||
-                                            type == Character.CURRENCY_SYMBOL ||
-                                            type == Character.MODIFIER_SYMBOL ||
-                                            type == Character.OTHER_SYMBOL ||
-                                            type == Character.NON_SPACING_MARK);
-
-                        boolean isInWordApostrophe = ((c == '\'' || c == '\u2019') && i > 0 && i + charCount < len &&
-                                                      Character.isLetterOrDigit(text.codePointAt(i - 1)) &&
-                                                      Character.isLetterOrDigit(text.codePointAt(i + charCount)));
-
-                        boolean isTerminalPunct = (c == '.' || c == '!' || c == '؟' || c == '،' || c == '؛' || c == '?' || c == ':' || c == ',');
-                        boolean isAtEnd = (i + charCount >= len) || Character.isWhitespace(text.codePointAt(i + charCount));
-
                         if (isInWordApostrophe) {
                             sb.appendCodePoint(c);
-                        } else if (isTerminalPunct && isAtEnd) {
+                        } else if (isTerminalPunct && isAtEnd && isAfterWord) { 
                             sb.appendCodePoint(c);
-                        } else if (isSymbol) {
                         } else {
-                            sb.append(' ');
+                            for (int k = 0; k < charCount; k++) {
+                                sb.append(' ');
+                            }
                         }
                     } else {
                         sb.appendCodePoint(c);

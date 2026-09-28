@@ -451,28 +451,27 @@ public class TtsService extends TextToSpeechService {
                         if (isInWordApostrophe) {
                             sb.appendCodePoint(c);
                         } else if (c == '.') {
-                            boolean isBetweenPersian = false;
-                            boolean isBetweenEnglishOrDigits = false;
+                            boolean isBetweenDigits = false;
+                            boolean isBetweenLetters = false;
                             
                             if (i > 0 && i + charCount < len) {
                                 int prevCp = text.codePointBefore(i);
                                 int nextCp = text.codePointAt(i + charCount);
                                 
-                                boolean prevIsPersian = (prevCp >= 0x0600 && prevCp <= 0x06FF);
-                                boolean nextIsPersian = (nextCp >= 0x0600 && nextCp <= 0x06FF);
-                                
-                                if (prevIsPersian && nextIsPersian) {
-                                    isBetweenPersian = true;
-                                } else if (Character.isLetterOrDigit(prevCp) && Character.isLetterOrDigit(nextCp)) {
-                                    isBetweenEnglishOrDigits = true;
+                                if (Character.isDigit(prevCp) && Character.isDigit(nextCp)) {
+                                    isBetweenDigits = true;
+                                } else if (Character.isLetter(prevCp) && Character.isLetter(nextCp)) {
+                                    isBetweenLetters = true;
                                 }
                             }
 
-                            if (isBetweenPersian) {
+                            if (isBetweenDigits) {
+                                sb.appendCodePoint(c);
+                            } else if (isBetweenLetters) {
                                 for (int k = 0; k < charCount; k++) {
                                     sb.append(' ');
                                 }
-                            } else if (isBetweenEnglishOrDigits || (isTerminalPunct && isAtEnd && isAfterWord)) {
+                            } else if (isTerminalPunct && isAtEnd && isAfterWord) {
                                 sb.appendCodePoint(c);
                             } else {
                                 for (int k = 0; k < charCount; k++) {

@@ -341,7 +341,9 @@ public class TtsService extends TextToSpeechService {
         }
         
         if (voice.name != null && voice.name.startsWith("fa") && text != null && !text.isEmpty()) {
-            text = text.replace('؟', '?');
+            if (text.trim().length() > 1) {
+                text = text.replace('؟', '?');
+            }
             if (text.trim().equals("\u0648")) {
                 text = "\u0648\u0627\u0648";
             } else {

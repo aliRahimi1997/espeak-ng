@@ -519,11 +519,7 @@ public class TtsService extends TextToSpeechService {
                             }
 
                             if (isBetweenDigits) {
-                                if (isCustomValid && customChars.indexOf(',') != -1) {
-                                    sb.append(" \u200C,\u200C ");
-                                } else {
-                                    sb.appendCodePoint(c);
-                                }
+                                sb.appendCodePoint(c);
                             } else if (isCustomValid && customChars.indexOf(',') != -1) {
                                 if (isAfterWord) sb.append(" \u200C");
                                 sb.appendCodePoint(c);

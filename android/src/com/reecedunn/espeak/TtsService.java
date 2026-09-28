@@ -476,12 +476,22 @@ public class TtsService extends TextToSpeechService {
                                 sb.appendCodePoint(c);
                             } else if (isBetweenLetters && !isPersianContext) {
                                 sb.appendCodePoint(c);
-                            } else if (isBetweenLetters && isPersianContext) {
-                                for (int k = 0; k < charCount; k++) {
-                                    sb.append(' ');
-                                }
-                            } else if (isTerminalPunct && isAtEnd && isAfterWord) {
+                            } else if (isCustomValid && customChars.indexOf('.') != -1) {
+                                if (isAfterWord) sb.append(" \u200C");
                                 sb.appendCodePoint(c);
+                                sb.append("\u200C ");
+                            } else if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
+                                if (isBetweenLetters && isPersianContext) {
+                                    for (int k = 0; k < charCount; k++) {
+                                        sb.append(' ');
+                                    }
+                                } else if (isTerminalPunct && isAtEnd && isAfterWord) {
+                                    sb.appendCodePoint(c);
+                                } else {
+                                    for (int k = 0; k < charCount; k++) {
+                                        sb.append(' ');
+                                    }
+                                }
                             } else {
                                 for (int k = 0; k < charCount; k++) {
                                     sb.append(' ');
@@ -499,12 +509,24 @@ public class TtsService extends TextToSpeechService {
                                 }
                             }
 
-                            if (isBetweenDigits) {
-                                sb.appendCodePoint(c);
-                            } else {
+                            if (isCustomValid && customChars.indexOf(':') != -1) {
                                 if (isAfterWord) sb.append(" \u200C");
-                                sb.append(",");
+                                sb.appendCodePoint(c);
                                 sb.append("\u200C ");
+                            } else if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
+                                if (isBetweenDigits) {
+                                    for (int k = 0; k < charCount; k++) {
+                                        sb.append(' ');
+                                    }
+                                } else {
+                                    if (isAfterWord) sb.append(" \u200C");
+                                    sb.append('،');
+                                    sb.append("\u200C ");
+                                }
+                            } else {
+                                for (int k = 0; k < charCount; k++) {
+                                    sb.append(' ');
+                                }
                             }
                         } else if (c == ',') {
                             boolean isBetweenDigits = false;
@@ -524,8 +546,14 @@ public class TtsService extends TextToSpeechService {
                                 if (isAfterWord) sb.append(" \u200C");
                                 sb.appendCodePoint(c);
                                 sb.append("\u200C ");
-                            } else if (isTerminalPunct && isAtEnd && isAfterWord) {
-                                sb.appendCodePoint(c);
+                            } else if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
+                                if (isTerminalPunct && isAtEnd && isAfterWord) {
+                                    sb.appendCodePoint(c);
+                                } else {
+                                    for (int k = 0; k < charCount; k++) {
+                                        sb.append(' ');
+                                    }
+                                }
                             } else {
                                 for (int k = 0; k < charCount; k++) {
                                     sb.append(' ');
@@ -535,8 +563,14 @@ public class TtsService extends TextToSpeechService {
                             if (isAfterWord) sb.append(" \u200C");
                             sb.appendCodePoint(c);
                             sb.append("\u200C ");
-                        } else if (isTerminalPunct && isAtEnd && isAfterWord) { 
-                            sb.appendCodePoint(c);
+                        } else if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
+                            if (isTerminalPunct && isAtEnd && isAfterWord) { 
+                                sb.appendCodePoint(c);
+                            } else {
+                                for (int k = 0; k < charCount; k++) {
+                                    sb.append(' ');
+                                }
+                            }
                         } else {
                             for (int k = 0; k < charCount; k++) {
                                 sb.append(' ');

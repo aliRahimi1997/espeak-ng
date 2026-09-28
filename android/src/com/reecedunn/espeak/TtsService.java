@@ -403,7 +403,8 @@ public class TtsService extends TextToSpeechService {
             boolean isCustomValid = (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) && 
                                     (settings.getPunctuationCharacters() != null && !settings.getPunctuationCharacters().trim().isEmpty());
 
-            if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
+            if (text.trim().length() <= 1) {
+            } else if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
                 text = text.replaceAll("[\"()\\[\\]{}\\-«»]", " ");
             } else if (punctLevel == SpeechSynthesis.PUNCT_NONE || punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
                 

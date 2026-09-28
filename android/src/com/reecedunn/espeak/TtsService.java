@@ -474,7 +474,9 @@ public class TtsService extends TextToSpeechService {
                             } else if (isBetweenLetters && !isPersianContext) {
                                 sb.appendCodePoint(c);
                             } else if (isBetweenLetters && isPersianContext) {
-                                sb.append(" \u200C.\u200C ");
+                                for (int k = 0; k < charCount; k++) {
+                                    sb.append(' ');
+                                }
                             } else if (isTerminalPunct && isAtEnd && isAfterWord) {
                                 sb.appendCodePoint(c);
                             } else {

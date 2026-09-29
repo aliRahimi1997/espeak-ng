@@ -499,6 +499,8 @@ public class TtsService extends TextToSpeechService {
                             }
                         } else if (c == ':') {
                             boolean isBetweenDigits = false;
+                            boolean isBetweenEnglishLetters = false;
+                            boolean isPersianContext = false;
                             
                             if (i > 0 && i + charCount < len) {
                                 int prevCp = text.codePointBefore(i);
@@ -506,27 +508,35 @@ public class TtsService extends TextToSpeechService {
                                 
                                 if (Character.isDigit(prevCp) && Character.isDigit(nextCp)) {
                                     isBetweenDigits = true;
+                                } else if (Character.isLetter(prevCp) && Character.isLetter(nextCp)) {
+                                    if ((prevCp >= 0x0600 && prevCp <= 0x06FF) || (nextCp >= 0x0600 && nextCp <= 0x06FF)) {
+                                        isPersianContext = true;
+                                    } else {
+                                        isBetweenEnglishLetters = true;
+                                    }
                                 }
                             }
 
-                            if (isCustomValid && customChars.indexOf(':') != -1) {
-                                if (isAfterWord) sb.append(" \u200C");
-                                sb.appendCodePoint(c);
-                                sb.append("\u200C ");
-                            } else if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
-                                if (isBetweenDigits) {
-                                    for (int k = 0; k < charCount; k++) {
-                                        sb.append(' ');
-                                    }
-                                } else {
-                                    if (isAfterWord) sb.append(" \u200C");
-                                    sb.append('،');
-                                    sb.append("\u200C ");
-                                }
-                            } else {
+                            if (isBetweenDigits) {
                                 for (int k = 0; k < charCount; k++) {
                                     sb.append(' ');
                                 }
+                            } else if (isBetweenEnglishLetters) {
+                                if (isCustomValid && customChars.indexOf(':') != -1) {
+                                    if (isAfterWord) sb.append(" \u200C");
+                                    sb.appendCodePoint(c);
+                                    sb.append("\u200C ");
+                                } else {
+                                    sb.appendCodePoint(c);
+                                }
+                            } else if (isPersianContext) {
+                                sb.append(' ');
+                            } else if (isCustomValid && customChars.indexOf(':') != -1) {
+                                if (isAfterWord) sb.append(" \u200C");
+                                sb.appendCodePoint(c);
+                                sb.append("\u200C ");
+                            } else {
+                                sb.append(' ');
                             }
                         } else if (c == ',') {
                             boolean isBetweenDigits = false;
@@ -572,8 +582,12 @@ public class TtsService extends TextToSpeechService {
                                 }
                             }
                         } else {
-                            for (int k = 0; k < charCount; k++) {
-                                sb.append(' ');
+                            if (isTerminalPunct && isAtEnd && isAfterWord) {
+                                sb.appendCodePoint(c);
+                            } else {
+                                for (int k = 0; k < charCount; k++) {
+                                    sb.append(' ');
+                                }
                             }
                         }
                     } else {

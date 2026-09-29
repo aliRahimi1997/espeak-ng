@@ -372,7 +372,8 @@ public class TtsService extends TextToSpeechService {
 
         final VoiceSettings settings = new VoiceSettings(PreferenceManager.getDefaultSharedPreferences(storageContext), mEngine);
 
-        final boolean isSsml = text.startsWith("<speak");
+        boolean isSsml = text.startsWith("<speak");
+        boolean hasSsmlBreak = false;
 
         final boolean speakDigits = settings.isSpeakDigitsEnabled() && !isSsml;
         if (speakDigits) {
@@ -515,13 +516,15 @@ public class TtsService extends TextToSpeechService {
                                     sb.appendCodePoint(c);
                                 }
                             } else if (isPersianContext) {
-                                sb.append(' ');
+                                sb.append("<break time=\"130ms\"/>");
+                                hasSsmlBreak = true;
                             } else if (isCustomValid && customChars.indexOf(':') != -1) {
                                 if (isAfterWord) sb.append(" \u200C");
                                 sb.appendCodePoint(c);
                                 sb.append("\u200C ");
                             } else {
-                                sb.append(' ');
+                                sb.append("<break time=\"130ms\"/>");
+                                hasSsmlBreak = true;
                             }
                         } else if (c == ',') {
                             boolean isBetweenDigits = false;
@@ -583,6 +586,11 @@ public class TtsService extends TextToSpeechService {
                 }
                 text = sb.toString();
             }
+        }
+
+        if (hasSsmlBreak && !text.startsWith("<speak")) {
+            text = "<speak>" + text + "</speak>";
+            isSsml = true;
         }
 
         mSynthText = text;

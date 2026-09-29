@@ -349,6 +349,8 @@ public class TtsService extends TextToSpeechService {
             } else {
                 text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])\\s+(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", "");
 
+                text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])[,،](?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", "");
+
                 text = text.replaceAll("(?<=\\s|^)-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9]+(?:\\.[0-9\\u0660-\\u0669\\u06F0-\\u06F9]+)?(?=\\s|$))", " \u0645\u0646\u0641\u06CC\u0647 ");
                 text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?![0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " ");
                 text = text.replaceAll("(?<=\\s|^)\u200C|\u200C(?=\\s|$)", "");
@@ -496,9 +498,7 @@ public class TtsService extends TextToSpeechService {
                             }
 
                             if (isBetweenDigits) {
-                                for (int k = 0; k < charCount; k++) {
-                                    sb.append(' ');
-                                }
+                                sb.appendCodePoint(c);
                             } else if (isCustomValid && customChars.indexOf(':') != -1) {
                                 if (isAfterWord) sb.append(" \u200C");
                                 sb.appendCodePoint(c);
@@ -539,7 +539,6 @@ public class TtsService extends TextToSpeechService {
                             }
 
                             if (isBetweenDigits) {
-                                sb.appendCodePoint(c);
                             } else if (isCustomValid && customChars.indexOf(c) != -1) {
                                 if (isAfterWord) sb.append(" \u200C");
                                 sb.appendCodePoint(c);

@@ -349,7 +349,10 @@ public class TtsService extends TextToSpeechService {
             } else {
                 text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])\\s+(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", "");
 
-                text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])[,،](?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", "");
+                text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])[,،٬](?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", "");
+
+                text = text.replaceAll("[\\s\\u200C\\u200E\\u200F]+([,،])", "$1");
+                text = text.replaceAll("([,،])[\\s\\u200C\\u200E\\u200F]+$", "$1");
 
                 text = text.replaceAll("(?<=\\s|^)-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9]+(?:\\.[0-9\\u0660-\\u0669\\u06F0-\\u06F9]+)?(?=\\s|$))", " \u0645\u0646\u0641\u06CC\u0647 ");
                 text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?![0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " ");
@@ -375,7 +378,6 @@ public class TtsService extends TextToSpeechService {
         final VoiceSettings settings = new VoiceSettings(PreferenceManager.getDefaultSharedPreferences(storageContext), mEngine);
 
         boolean isSsml = text.startsWith("<speak");
-        boolean hasSsmlBreak = false;
 
         final boolean speakDigits = settings.isSpeakDigitsEnabled() && !isSsml;
         if (speakDigits) {
@@ -403,7 +405,7 @@ public class TtsService extends TextToSpeechService {
         }
 
         text = text.replaceAll("(?<![0-9\\u0660-\\u0669\\u06F0-\\u06F9])[0\\u0660\\u06F0]+(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9]:)", "");
-        text = text.replaceAll("(?<=\\s|^)[,،](?=\\S)", " ");
+        text = text.replaceAll("(?<=\\s|^)[,،٬](?=\\S)", " ");
 
         if (!isSsml) {
             int punctLevel = settings.getPunctuationLevel();
@@ -447,7 +449,7 @@ public class TtsService extends TextToSpeechService {
                                                   Character.isLetterOrDigit(text.codePointBefore(i)) && 
                                                   Character.isLetterOrDigit(text.codePointAt(i + charCount)));
 
-                    boolean isTerminalPunct = (c == '.' || c == '!' || c == '؟' || c == '،' || c == '؛' || c == '?' || c == ':' || c == ',' || c == '/');
+                    boolean isTerminalPunct = (c == '.' || c == '!' || c == '؟' || c == '،' || c == '؛' || c == '?' || c == ':' || c == ',' || c == '٬' || c == '/');
                     boolean isAtEnd = (i + charCount >= len) || Character.isWhitespace(text.codePointAt(i + charCount));
 
                     boolean isAfterWord = false;
@@ -503,9 +505,12 @@ public class TtsService extends TextToSpeechService {
                                 if (isAfterWord) sb.append(" \u200C");
                                 sb.appendCodePoint(c);
                                 sb.append("\u200C ");
+                            } else if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
+                                sb.append(' ');
                             } else {
-                                sb.append("<break time=\"130ms\"/>");
-                                hasSsmlBreak = true;
+                                for (int k = 0; k < charCount; k++) {
+                                    sb.append(' ');
+                                }
                             }
                         } else if (c == '/' && punctLevel == SpeechSynthesis.PUNCT_NONE) {
                             boolean isBetweenDigits = false;
@@ -526,7 +531,7 @@ public class TtsService extends TextToSpeechService {
                                     sb.append(' ');
                                 }
                             }
-                        } else if (c == ',' || c == '،') {
+                        } else if (c == ',' || c == '،' || c == '٬') {
                             boolean isBetweenDigits = false;
                             
                             if (i > 0 && i + charCount < len) {
@@ -585,11 +590,6 @@ public class TtsService extends TextToSpeechService {
                 }
                 text = sb.toString();
             }
-        }
-
-        if (hasSsmlBreak && !text.startsWith("<speak")) {
-            text = "<speak>" + text + "</speak>";
-            isSsml = true;
         }
 
         mSynthText = text;

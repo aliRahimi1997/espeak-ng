@@ -347,8 +347,7 @@ public class TtsService extends TextToSpeechService {
             if (text.trim().equals("\u0648")) {
                 text = "\u0648\u0627\u0648";
             } else {
-                text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])\\s+(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", "");
-
+                text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9]{1})\\s+(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9]{1})", "");
                 text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])[,،٬](?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", "");
 
                 text = text.replaceAll("[\\s\\u200C\\u200E\\u200F]+([,،])", "$1");

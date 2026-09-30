@@ -682,7 +682,7 @@ public class TtsService extends TextToSpeechService {
             int end = codePointToOffset(wordStart + Math.max(textLength, 0));
             if (mSynthNormalization != null) {
                 start = mSynthNormalization.toOriginalOffset(start);
-                end = mSynthNotFound = mSynthNormalization.toOriginalOffset(end);
+                end = mSynthNormalization.toOriginalOffset(end);
             }
             if (end <= start) {
                 return;

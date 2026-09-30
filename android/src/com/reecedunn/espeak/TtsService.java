@@ -505,14 +505,12 @@ public class TtsService extends TextToSpeechService {
                                 if (isAfterWord) sb.append(" \u200C");
                                 sb.appendCodePoint(c);
                                 sb.append("\u200C ");
-                            } else if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
-                                sb.append(' ');
                             } else {
                                 for (int k = 0; k < charCount; k++) {
                                     sb.append(' ');
                                 }
                             }
-                        } else if (c == '/' && punctLevel == SpeechSynthesis.PUNCT_NONE) {
+                        } else if (c == '/') {
                             boolean isBetweenDigits = false;
                             
                             if (i > 0 && i + charCount < len) {
@@ -526,6 +524,10 @@ public class TtsService extends TextToSpeechService {
 
                             if (isBetweenDigits) {
                                 sb.appendCodePoint(c);
+                            } else if (isCustomValid && customChars.indexOf('/') != -1) {
+                                if (isAfterWord) sb.append(" \u200C");
+                                sb.appendCodePoint(c);
+                                sb.append("\u200C ");
                             } else {
                                 for (int k = 0; k < charCount; k++) {
                                     sb.append(' ');

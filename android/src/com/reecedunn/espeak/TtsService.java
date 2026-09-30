@@ -377,21 +377,13 @@ public class TtsService extends TextToSpeechService {
         final VoiceSettings settings = new VoiceSettings(PreferenceManager.getDefaultSharedPreferences(storageContext), mEngine);
 
         boolean isSsml = text.startsWith("<speak");
-
-        final boolean speakDigits = settings.isSpeakDigitsEnabled() && !isSsml;
-        if (speakDigits) {
-            text = spaceSeparateDigits(text);
-        }
+        final boolean speakDigits = false; 
 
         UnicodeNormalization.Result normalization = null;
         if (settings.isUnicodeNormalizationEnabled()) {
             normalization = UnicodeNormalization.normalize(text);
             if (normalization != null) {
                 text = normalization.text;
-                if (speakDigits) {
-                    text = spaceSeparateDigits(text);
-                    normalization = null;
-                }
             }
         }
 
@@ -650,21 +642,7 @@ public class TtsService extends TextToSpeechService {
         if (text == null || text.isEmpty()) {
             return text;
         }
-        final int len = text.length();
-        StringBuilder out = new StringBuilder(len * 2);
-        boolean prevWasDigit = false;
-        for (int i = 0; i < len; ) {
-            final int c = text.codePointAt(i);
-            final int charCount = Character.charCount(c);
-            final boolean isDigit = Character.isDigit(c);
-            if (isDigit && prevWasDigit) {
-                out.append(' ');
-            }
-            out.appendCodePoint(c);
-            prevWasDigit = isDigit;
-            i += charCount;
-        }
-        return out.toString();
+        return text;
     }
 
     private final SpeechSynthesis.SynthReadyCallback mSynthCallback = new SynthReadyCallback() {

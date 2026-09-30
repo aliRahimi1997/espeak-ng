@@ -438,7 +438,7 @@ public class TtsService extends TextToSpeechService {
                                                   Character.isLetterOrDigit(text.codePointBefore(i)) && 
                                                   Character.isLetterOrDigit(text.codePointAt(i + charCount)));
 
-                    boolean isTerminalPunct = (c == '.' || c == '!' || c == '؟' || c == '،' || c == '؛' || c == '?' || c == ':' || c == ',' || c == '٬' || c == '/');
+                    boolean isTerminalPunct = (c == '.' || c == '!' || c == '؟' || c == '؛' || c == '?' || c == ':' || c == '/' || c == ',' || c == '،' || c == '٬');
                     boolean isAtEnd = (i + charCount >= len) || Character.isWhitespace(text.codePointAt(i + charCount));
 
                     boolean isAfterWord = false;
@@ -682,7 +682,7 @@ public class TtsService extends TextToSpeechService {
             int end = codePointToOffset(wordStart + Math.max(textLength, 0));
             if (mSynthNormalization != null) {
                 start = mSynthNormalization.toOriginalOffset(start);
-                end = mSynthNormalization.toOriginalOffset(end);
+                end = mSynthNotFound = mSynthNormalization.toOriginalOffset(end);
             }
             if (end <= start) {
                 return;

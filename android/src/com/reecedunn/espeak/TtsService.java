@@ -348,6 +348,7 @@ public class TtsService extends TextToSpeechService {
                 text = "\u0648\u0627\u0648";
             } else {
                 text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9]{1})\\s+(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9]{1})", "");
+                text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9]{2,})\\s+(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9]{2,})", " \u200C ");
                 text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])[,،٬](?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", "");
 
                 text = text.replaceAll("[\\s\\u200C\\u200E\\u200F]+([,،])", "$1");
@@ -377,7 +378,6 @@ public class TtsService extends TextToSpeechService {
         final VoiceSettings settings = new VoiceSettings(PreferenceManager.getDefaultSharedPreferences(storageContext), mEngine);
 
         boolean isSsml = text.startsWith("<speak");
-        final boolean speakDigits = false; 
 
         UnicodeNormalization.Result normalization = null;
         if (settings.isUnicodeNormalizationEnabled()) {

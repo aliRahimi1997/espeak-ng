@@ -64,6 +64,10 @@ public class TtsService extends TextToSpeechService {
             mPreferences.edit().putBoolean(VoiceSettings.PREF_EMOJI_ENABLED, true).apply();
         }
 
+        if (!mPreferences.contains(VoiceSettings.PREF_SPEAK_DIGITS)) {
+            mPreferences.edit().putBoolean(VoiceSettings.PREF_SPEAK_DIGITS, false).apply();
+        }
+
         initializeTtsEngine();
         super.onCreate();
     }
@@ -340,6 +344,9 @@ public class TtsService extends TextToSpeechService {
             Log.i(TAG, "Received synthesis request: {language=\"" + voice.name + "\"}");
         }
         
+        final VoiceSettings settings = new VoiceSettings(PreferenceManager.getDefaultSharedPreferences(storageContext), mEngine);
+        int punctLevel = settings.getPunctuationLevel();
+
         if (voice.name != null && voice.name.startsWith("fa") && text != null && !text.isEmpty()) {
             if (text.trim().length() > 1) {
                 text = text.replace('؟', '?');
@@ -347,10 +354,12 @@ public class TtsService extends TextToSpeechService {
             if (text.trim().equals("\u0648")) {
                 text = "\u0648\u0627\u0648";
             } else {
-                text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])[,،٬](?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", "");
+                if (punctLevel == SpeechSynthesis.PUNCT_NONE || punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
+                    text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])[,،٬](?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9]{3}(?![0-9\\u0660-\\u0669\\u06F0-\\u06F9]))", "");
 
-                text = text.replaceAll("[\\s\\u200C\\u200E\\u200F]+([,،])", "$1");
-                text = text.replaceAll("([,،])[\\s\\u200C\\u200E\\u200F]+$", "$1");
+                    text = text.replaceAll("[\\s\\u200C\\u200E\\u200F]+([,،])", "$1");
+                    text = text.replaceAll("([,،])[\\s\\u200C\\u200E\\u200F]+$", "$1");
+                }
 
                 text = text.replaceAll("(?<=\\s|^)-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9]+(?:\\.[0-9\\u0660-\\u0669\\u06F0-\\u06F9]+)?(?=\\s|$))", " \u0645\u0646\u0641\u06CC\u0647 ");
                 text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?![0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " ");
@@ -373,8 +382,6 @@ public class TtsService extends TextToSpeechService {
             }
         }
 
-        final VoiceSettings settings = new VoiceSettings(PreferenceManager.getDefaultSharedPreferences(storageContext), mEngine);
-
         boolean isSsml = text.startsWith("<speak");
 
         UnicodeNormalization.Result normalization = null;
@@ -393,11 +400,14 @@ public class TtsService extends TextToSpeechService {
             }
         }
 
+        if (settings.isSpeakDigitsEnabled()) {
+            text = spaceSeparateDigits(text);
+        }
+
         text = text.replaceAll("(?<![0-9\\u0660-\\u0669\\u06F0-\\u06F9])[0\\u0660\\u06F0]+(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9]:)", "");
         text = text.replaceAll("(?<=\\s|^)[,،٬](?=\\S)", " ");
 
         if (!isSsml) {
-            int punctLevel = settings.getPunctuationLevel();
             boolean isCustomValid = (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) && 
                                     (settings.getPunctuationCharacters() != null && !settings.getPunctuationCharacters().trim().isEmpty());
 
@@ -640,7 +650,7 @@ public class TtsService extends TextToSpeechService {
         if (text == null || text.isEmpty()) {
             return text;
         }
-        return text;
+        return text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " ");
     }
 
     private final SpeechSynthesis.SynthReadyCallback mSynthCallback = new SynthReadyCallback() {

@@ -448,6 +448,16 @@ public class TtsService extends TextToSpeechService {
                                                   Character.isLetterOrDigit(text.codePointAt(i + charCount)));
 
                     boolean isUSSDChar = (c == '*' || c == '#');
+                    boolean isNextToDigit = false;
+                    if (isUSSDChar) {
+                        if (i > 0 && Character.isDigit(text.codePointBefore(i))) {
+                            isNextToDigit = true;
+                        }
+                        if (i + charCount < len && Character.isDigit(text.codePointAt(i + charCount))) {
+                            isNextToDigit = true;
+                        }
+                    }
+
                     boolean isControlPauseChar = (c == 0x2069);
 
                     boolean isTerminalPunct = (c == '.' || c == '!' || c == '؟' || c == '؛' || c == '?' || c == ':' || c == '/' || c == ',' || c == '،' || c == '٬');
@@ -462,7 +472,7 @@ public class TtsService extends TextToSpeechService {
                         for (int k = 0; k < charCount; k++) {
                             sb.append(' ');
                         }
-                    } else if (isPunctOrSymbol && !isUSSDChar) {
+                    } else if (isPunctOrSymbol && !(isUSSDChar && isNextToDigit)) {
                         if (isInWordApostrophe) {
                             sb.appendCodePoint(c);
                         } else if (c == '.') {

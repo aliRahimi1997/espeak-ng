@@ -67,7 +67,7 @@ public class TtsService extends TextToSpeechService {
         if (!mPreferences.contains(VoiceSettings.PREF_SPEAK_DIGITS)) {
             mPreferences.edit().putBoolean(VoiceSettings.PREF_SPEAK_DIGITS, false).apply();
         }
-
+// test
         initializeTtsEngine();
         super.onCreate();
     }

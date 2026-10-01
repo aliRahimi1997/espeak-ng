@@ -483,10 +483,6 @@ public class TtsService extends TextToSpeechService {
                                 if (isAfterWord) sb.append(" \u200C");
                                 sb.appendCodePoint(c);
                                 sb.append("\u200C ");
-                            } else if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
-                                for (int k = 0; k < charCount; k++) {
-                                    sb.append(' ');
-                                }
                             } else {
                                 for (int k = 0; k < charCount; k++) {
                                     sb.append(' ');

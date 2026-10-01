@@ -363,7 +363,8 @@ public class TtsService extends TextToSpeechService {
 
                 text = text.replaceAll("(?<=\\s|^)-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9]+(?:\\.[0-9\\u0660-\\u0669\\u06F0-\\u06F9]+)?(?=\\s|$))", " \u0645\u0646\u0641\u06CC\u0647 ");
                 text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?![0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " ");
-                text = text.replaceAll("(?<=\\s|^)\u200C|\u200C(?=\\s|$)", "");
+                
+                text = text.replace("\u200C", "");
             }
         }
 

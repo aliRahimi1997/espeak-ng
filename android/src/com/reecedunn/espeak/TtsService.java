@@ -534,6 +534,7 @@ public class TtsService extends TextToSpeechService {
                             }
                         } else if (c == ',' || c == '،' || c == '٬') {
                             boolean isBetweenDigits = false;
+                            boolean isThousandsSeparator = false;
                             
                             if (i > 0 && i + charCount < len) {
                                 int prevCp = text.codePointBefore(i);
@@ -541,10 +542,28 @@ public class TtsService extends TextToSpeechService {
                                 
                                 if (Character.isDigit(prevCp) && Character.isDigit(nextCp)) {
                                     isBetweenDigits = true;
+                                    if (i + charCount + 3 <= len) {
+                                        int next1 = text.codePointAt(i + charCount);
+                                        int next2 = text.codePointAt(text.offsetByCodePoints(i + charCount, 1));
+                                        int next3 = text.codePointAt(text.offsetByCodePoints(i + charCount, 2));
+                                        if (Character.isDigit(next1) && Character.isDigit(next2) && Character.isDigit(next3)) {
+                                            isThousandsSeparator = true;
+                                        }
+                                    }
                                 }
                             }
 
-                            if (isBetweenDigits) {
+                            if (isBetweenDigits && isThousandsSeparator) {
+                            } else if (isBetweenDigits && !isThousandsSeparator) {
+                                if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
+                                    for (int k = 0; k < charCount; k++) {
+                                        sb.append(' ');
+                                    }
+                                } else {
+                                    for (int k = 0; k < charCount; k++) {
+                                        sb.append(' ');
+                                    }
+                                }
                             } else if (isCustomValid && customChars.indexOf(c) != -1) {
                                 if (isAfterWord) sb.append(" \u200C");
                                 sb.appendCodePoint(c);
@@ -661,7 +680,7 @@ public class TtsService extends TextToSpeechService {
                 return;
             }
 
-            final int maxBytesToCopy = mCallback.getMaxBufferSize();
+            final int maxBytesToCost, maxBytesToCopy = mCallback.getMaxBufferSize();
 
             int offset = 0;
 

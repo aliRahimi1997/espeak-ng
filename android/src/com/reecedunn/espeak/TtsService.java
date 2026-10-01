@@ -67,7 +67,7 @@ public class TtsService extends TextToSpeechService {
         if (!mPreferences.contains(VoiceSettings.PREF_SPEAK_DIGITS)) {
             mPreferences.edit().putBoolean(VoiceSettings.PREF_SPEAK_DIGITS, false).apply();
         }
-// test
+
         initializeTtsEngine();
         super.onCreate();
     }
@@ -448,6 +448,7 @@ public class TtsService extends TextToSpeechService {
                                                   Character.isLetterOrDigit(text.codePointAt(i + charCount)));
 
                     boolean isUSSDChar = (c == '*' || c == '#');
+                    boolean isControlPauseChar = (c == 0x2069);
 
                     boolean isTerminalPunct = (c == '.' || c == '!' || c == '؟' || c == '؛' || c == '?' || c == ':' || c == '/' || c == ',' || c == '،' || c == '٬');
                     boolean isAtEnd = (i + charCount >= len) || Character.isWhitespace(text.codePointAt(i + charCount));
@@ -457,7 +458,11 @@ public class TtsService extends TextToSpeechService {
                         isAfterWord = !Character.isWhitespace(text.codePointBefore(i));
                     }
 
-                    if (isPunctOrSymbol && !isUSSDChar) {
+                    if (isControlPauseChar) {
+                        for (int k = 0; k < charCount; k++) {
+                            sb.append(' ');
+                        }
+                    } else if (isPunctOrSymbol && !isUSSDChar) {
                         if (isInWordApostrophe) {
                             sb.appendCodePoint(c);
                         } else if (c == '.') {

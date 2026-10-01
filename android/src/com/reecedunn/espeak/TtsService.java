@@ -405,7 +405,6 @@ public class TtsService extends TextToSpeechService {
         }
 
         text = text.replaceAll("(?<![0-9\\u0660-\\u0669\\u06F0-\\u06F9])[0\\u0660\\u06F0]+(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9]:)", "");
-        text = text.replaceAll("(?<=\\s|^)[,،٬](?=\\S)", " ");
 
         if (!isSsml) {
             boolean isCustomValid = (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) && 

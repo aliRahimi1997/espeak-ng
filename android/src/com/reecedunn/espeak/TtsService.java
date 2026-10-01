@@ -448,6 +448,8 @@ public class TtsService extends TextToSpeechService {
                                                   Character.isLetterOrDigit(text.codePointBefore(i)) && 
                                                   Character.isLetterOrDigit(text.codePointAt(i + charCount)));
 
+                    boolean isUSSDChar = (c == '*' || c == '#');
+
                     boolean isTerminalPunct = (c == '.' || c == '!' || c == '؟' || c == '؛' || c == '?' || c == ':' || c == '/' || c == ',' || c == '،' || c == '٬');
                     boolean isAtEnd = (i + charCount >= len) || Character.isWhitespace(text.codePointAt(i + charCount));
 
@@ -456,7 +458,7 @@ public class TtsService extends TextToSpeechService {
                         isAfterWord = !Character.isWhitespace(text.codePointBefore(i));
                     }
 
-                    if (isPunctOrSymbol) {
+                    if (isPunctOrSymbol && !isUSSDChar) {
                         if (isInWordApostrophe) {
                             sb.appendCodePoint(c);
                         } else if (c == '.') {
@@ -680,7 +682,7 @@ public class TtsService extends TextToSpeechService {
                 return;
             }
 
-            final int maxBytesToCost, maxBytesToCopy = mCallback.getMaxBufferSize();
+            final int maxBytesToCopy = mCallback.getMaxBufferSize();
 
             int offset = 0;
 

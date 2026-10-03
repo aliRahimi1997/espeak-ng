@@ -341,9 +341,7 @@ public class TtsService extends TextToSpeechService {
         }
         
         if (voice.name != null && voice.name.startsWith("fa") && text != null && !text.isEmpty()) {
-            if (text.trim().length() > 1) {
-                text = text.replace('؟', '?');
-            }
+            text = text.replace('؟', '?');
             if (text.trim().equals("\u0648")) {
                 text = "\u0648\u0627\u0648";
             } else {
@@ -406,6 +404,7 @@ public class TtsService extends TextToSpeechService {
                                     (settings.getPunctuationCharacters() != null && !settings.getPunctuationCharacters().trim().isEmpty());
 
             if (text.trim().length() <= 1) {
+                // کاراکترهای تکی (مثل لمس صفحه کلید) را فیلتر نکن تا نام علامت خوانده شود
             } else if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
                 text = text.replaceAll("[\"()\\[\\]{}\\-«»]", " ");
             } else if (punctLevel == SpeechSynthesis.PUNCT_NONE || punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
@@ -476,22 +475,12 @@ public class TtsService extends TextToSpeechService {
                                 sb.appendCodePoint(c);
                             } else if (isBetweenLetters && !isPersianContext) {
                                 sb.appendCodePoint(c);
-                            } else if (isCustomValid && customChars.indexOf('.') != -1) {
-                                if (isAfterWord) sb.append(" \u200C");
-                                sb.appendCodePoint(c);
-                                sb.append("\u200C ");
-                            } else if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
-                                if (isBetweenLetters && isPersianContext) {
-                                    for (int k = 0; k < charCount; k++) {
-                                        sb.append(' ');
-                                    }
-                                } else if (isTerminalPunct && isAtEnd && isAfterWord) {
-                                    sb.appendCodePoint(c);
-                                } else {
-                                    for (int k = 0; k < charCount; k++) {
-                                        sb.append(' ');
-                                    }
+                            } else if (isBetweenLetters && isPersianContext) {
+                                for (int k = 0; k < charCount; k++) {
+                                    sb.append(' ');
                                 }
+                            } else if (isTerminalPunct && isAtEnd && isAfterWord) {
+                                sb.appendCodePoint(c);
                             } else {
                                 for (int k = 0; k < charCount; k++) {
                                     sb.append(' ');
@@ -509,24 +498,12 @@ public class TtsService extends TextToSpeechService {
                                 }
                             }
 
-                            if (isCustomValid && customChars.indexOf(':') != -1) {
-                                if (isAfterWord) sb.append(" \u200C");
+                            if (isBetweenDigits) {
                                 sb.appendCodePoint(c);
-                                sb.append("\u200C ");
-                            } else if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
-                                if (isBetweenDigits) {
-                                    for (int k = 0; k < charCount; k++) {
-                                        sb.append(' ');
-                                    }
-                                } else {
-                                    if (isAfterWord) sb.append(" \u200C");
-                                    sb.append('،');
-                                    sb.append("\u200C ");
-                                }
                             } else {
-                                for (int k = 0; k < charCount; k++) {
-                                    sb.append(' ');
-                                }
+                                if (isAfterWord) sb.append(" \u200C");
+                                sb.append(",");
+                                sb.append("\u200C ");
                             }
                         } else if (c == ',') {
                             boolean isBetweenDigits = false;
@@ -541,19 +518,17 @@ public class TtsService extends TextToSpeechService {
                             }
 
                             if (isBetweenDigits) {
-                                sb.appendCodePoint(c);
+                                if (isCustomValid && customChars.indexOf(',') != -1) {
+                                    sb.append(" \u200C,\u200C ");
+                                } else {
+                                    sb.appendCodePoint(c);
+                                }
                             } else if (isCustomValid && customChars.indexOf(',') != -1) {
                                 if (isAfterWord) sb.append(" \u200C");
                                 sb.appendCodePoint(c);
                                 sb.append("\u200C ");
-                            } else if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
-                                if (isTerminalPunct && isAtEnd && isAfterWord) {
-                                    sb.appendCodePoint(c);
-                                } else {
-                                    for (int k = 0; k < charCount; k++) {
-                                        sb.append(' ');
-                                    }
-                                }
+                            } else if (isTerminalPunct && isAtEnd && isAfterWord) {
+                                sb.appendCodePoint(c);
                             } else {
                                 for (int k = 0; k < charCount; k++) {
                                     sb.append(' ');
@@ -563,14 +538,8 @@ public class TtsService extends TextToSpeechService {
                             if (isAfterWord) sb.append(" \u200C");
                             sb.appendCodePoint(c);
                             sb.append("\u200C ");
-                        } else if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
-                            if (isTerminalPunct && isAtEnd && isAfterWord) { 
-                                sb.appendCodePoint(c);
-                            } else {
-                                for (int k = 0; k < charCount; k++) {
-                                    sb.append(' ');
-                                }
-                            }
+                        } else if (isTerminalPunct && isAtEnd && isAfterWord) { 
+                            sb.appendCodePoint(c);
                         } else {
                             for (int k = 0; k < charCount; k++) {
                                 sb.append(' ');

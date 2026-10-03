@@ -403,9 +403,7 @@ public class TtsService extends TextToSpeechService {
             boolean isCustomValid = (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) && 
                                     (settings.getPunctuationCharacters() != null && !settings.getPunctuationCharacters().trim().isEmpty());
 
-            if (text.trim().length() <= 1) {
-                // کاراکترهای تکی (مثل لمس صفحه کلید) را فیلتر نکن تا نام علامت خوانده شود
-            } else if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
+            if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
                 text = text.replaceAll("[\"()\\[\\]{}\\-«»]", " ");
             } else if (punctLevel == SpeechSynthesis.PUNCT_NONE || punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
                 
@@ -453,33 +451,28 @@ public class TtsService extends TextToSpeechService {
                         if (isInWordApostrophe) {
                             sb.appendCodePoint(c);
                         } else if (c == '.') {
-                            boolean isBetweenDigits = false;
-                            boolean isBetweenLetters = false;
-                            boolean isPersianContext = false;
+                            boolean isBetweenPersian = false;
+                            boolean isBetweenEnglishOrDigits = false;
                             
                             if (i > 0 && i + charCount < len) {
                                 int prevCp = text.codePointBefore(i);
                                 int nextCp = text.codePointAt(i + charCount);
                                 
-                                if (Character.isDigit(prevCp) && Character.isDigit(nextCp)) {
-                                    isBetweenDigits = true;
-                                } else if (Character.isLetter(prevCp) && Character.isLetter(nextCp)) {
-                                    isBetweenLetters = true;
-                                    if ((prevCp >= 0x0600 && prevCp <= 0x06FF) || (nextCp >= 0x0600 && nextCp <= 0x06FF)) {
-                                        isPersianContext = true;
-                                    }
+                                boolean prevIsPersian = (prevCp >= 0x0600 && prevCp <= 0x06FF);
+                                boolean nextIsPersian = (nextCp >= 0x0600 && nextCp <= 0x06FF);
+                                
+                                if (prevIsPersian && nextIsPersian) {
+                                    isBetweenPersian = true;
+                                } else if (Character.isLetterOrDigit(prevCp) && Character.isLetterOrDigit(nextCp)) {
+                                    isBetweenEnglishOrDigits = true;
                                 }
                             }
 
-                            if (isBetweenDigits) {
-                                sb.appendCodePoint(c);
-                            } else if (isBetweenLetters && !isPersianContext) {
-                                sb.appendCodePoint(c);
-                            } else if (isBetweenLetters && isPersianContext) {
+                            if (isBetweenPersian) {
                                 for (int k = 0; k < charCount; k++) {
                                     sb.append(' ');
                                 }
-                            } else if (isTerminalPunct && isAtEnd && isAfterWord) {
+                            } else if (isBetweenEnglishOrDigits || (isTerminalPunct && isAtEnd && isAfterWord)) {
                                 sb.appendCodePoint(c);
                             } else {
                                 for (int k = 0; k < charCount; k++) {
@@ -488,6 +481,7 @@ public class TtsService extends TextToSpeechService {
                             }
                         } else if (c == ':') {
                             boolean isBetweenDigits = false;
+                            boolean isBetweenEnglishOrLetters = false;
                             
                             if (i > 0 && i + charCount < len) {
                                 int prevCp = text.codePointBefore(i);
@@ -495,15 +489,27 @@ public class TtsService extends TextToSpeechService {
                                 
                                 if (Character.isDigit(prevCp) && Character.isDigit(nextCp)) {
                                     isBetweenDigits = true;
+                                } else if (Character.isLetter(prevCp) && Character.isLetter(nextCp)) {
+                                    isBetweenEnglishOrLetters = true;
                                 }
                             }
 
-                            if (isBetweenDigits) {
+                            if (isBetweenDigits || isBetweenEnglishOrLetters) {
+                                if (isCustomValid && customChars.indexOf(':') != -1) {
+                                    sb.append(" \u200C:\u200C ");
+                                } else {
+                                    sb.appendCodePoint(c);
+                                }
+                            } else if (isCustomValid && customChars.indexOf(':') != -1) {
+                                if (isAfterWord) sb.append(" \u200C");
+                                sb.appendCodePoint(c);
+                                sb.append("\u200C ");
+                            } else if (isTerminalPunct && isAtEnd && isAfterWord) {
                                 sb.appendCodePoint(c);
                             } else {
-                                if (isAfterWord) sb.append(" \u200C");
-                                sb.append(",");
-                                sb.append("\u200C ");
+                                for (int k = 0; k < charCount; k++) {
+                                    sb.append(' ');
+                                }
                             }
                         } else if (c == ',') {
                             boolean isBetweenDigits = false;

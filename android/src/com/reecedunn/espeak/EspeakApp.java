@@ -16,7 +16,7 @@ public class EspeakApp extends Application {
     public void onCreate() {
         super.onCreate();
         Context appContext = getApplicationContext();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             EspeakApp.storageContext = appContext.createDeviceProtectedStorageContext();
         } else {
             EspeakApp.storageContext = appContext;

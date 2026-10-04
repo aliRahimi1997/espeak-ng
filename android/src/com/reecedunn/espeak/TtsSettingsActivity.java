@@ -46,7 +46,7 @@ public class TtsSettingsActivity extends PreferenceActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tts_settings);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
         {
             PreferenceManager preferenceManager = getPreferenceManager();
             preferenceManager.setStorageDeviceProtected ();

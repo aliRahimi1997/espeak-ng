@@ -49,6 +49,7 @@ public class TtsService extends TextToSpeechService {
         storageContext = EspeakApp.getStorageContext();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
             storageContext.moveSharedPreferencesFrom(this, this.getPackageName() + "_preferences");
+        
         mPreferences = PreferenceManager.getDefaultSharedPreferences(storageContext);
         
         if (!CheckVoiceData.hasBaseResources(storageContext)

@@ -47,7 +47,7 @@ public class TtsService extends TextToSpeechService {
     @Override
     public void onCreate() {
         storageContext = EspeakApp.getStorageContext();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
             storageContext.moveSharedPreferencesFrom(this, this.getPackageName() + "_preferences");
         mPreferences = PreferenceManager.getDefaultSharedPreferences(storageContext);
         
@@ -62,6 +62,10 @@ public class TtsService extends TextToSpeechService {
 
         if (!mPreferences.contains(VoiceSettings.PREF_EMOJI_ENABLED)) {
             mPreferences.edit().putBoolean(VoiceSettings.PREF_EMOJI_ENABLED, true).apply();
+        }
+
+        if (!mPreferences.contains(VoiceSettings.PREF_SPEAK_DIGITS)) {
+            mPreferences.edit().putBoolean(VoiceSettings.PREF_SPEAK_DIGITS, false).apply();
         }
 
         initializeTtsEngine();
@@ -340,14 +344,27 @@ public class TtsService extends TextToSpeechService {
             Log.i(TAG, "Received synthesis request: {language=\"" + voice.name + "\"}");
         }
         
+        final VoiceSettings settings = new VoiceSettings(PreferenceManager.getDefaultSharedPreferences(storageContext), mEngine);
+        int punctLevel = settings.getPunctuationLevel();
+
         if (voice.name != null && voice.name.startsWith("fa") && text != null && !text.isEmpty()) {
-            text = text.replace('؟', '?');
+            if (text.trim().length() > 1) {
+                text = text.replace('؟', '?');
+            }
             if (text.trim().equals("\u0648")) {
                 text = "\u0648\u0627\u0648";
             } else {
-                text = text.replaceAll("(?<=^|\\s|-)(?<![0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9]+(?:\\.[0-9\\u0660-\\u0669\\u06F0-\\u06F9]+)?)", " \u0645\u0646\u0641\u06CC\u0647 ");
+                if (punctLevel == SpeechSynthesis.PUNCT_NONE || punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
+                    text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])[,،٬](?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9]{3}(?![0-9\\u0660-\\u0669\\u06F0-\\u06F9]))", "");
+
+                    text = text.replaceAll("[\\s\\u200C\\u200E\\u200F]+([,،])", "$1");
+                    text = text.replaceAll("([,،])[\\s\\u200C\\u200E\\u200F]+$", "$1");
+                }
+
+                text = text.replaceAll("(?<=\\s|^)-(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9]+(?:\\.[0-9\\u0660-\\u0669\\u06F0-\\u06F9]+)?(?=\\s|$))", " \u0645\u0646\u0641\u06CC\u0647 ");
                 text = text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])-(?![0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " ");
-                text = text.replaceAll("(?<=\\s|^)\u200C|\u200C(?=\\s|$)", "");
+                
+                text = text.replace("\u200C", "");
             }
         }
 
@@ -366,24 +383,13 @@ public class TtsService extends TextToSpeechService {
             }
         }
 
-        final VoiceSettings settings = new VoiceSettings(PreferenceManager.getDefaultSharedPreferences(storageContext), mEngine);
-
-        final boolean isSsml = text.startsWith("<speak");
-
-        final boolean speakDigits = settings.isSpeakDigitsEnabled() && !isSsml;
-        if (speakDigits) {
-            text = spaceSeparateDigits(text);
-        }
+        boolean isSsml = text.startsWith("<speak");
 
         UnicodeNormalization.Result normalization = null;
         if (settings.isUnicodeNormalizationEnabled()) {
             normalization = UnicodeNormalization.normalize(text);
             if (normalization != null) {
                 text = normalization.text;
-                if (speakDigits) {
-                    text = spaceSeparateDigits(text);
-                    normalization = null;
-                }
             }
         }
 
@@ -395,15 +401,18 @@ public class TtsService extends TextToSpeechService {
             }
         }
 
+        if (settings.isSpeakDigitsEnabled()) {
+            text = spaceSeparateDigits(text);
+        }
+
         text = text.replaceAll("(?<![0-9\\u0660-\\u0669\\u06F0-\\u06F9])[0\\u0660\\u06F0]+(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9]:)", "");
-        text = text.replaceAll("(?<=\\s|^)[,،](?=\\S)", " ");
 
         if (!isSsml) {
-            int punctLevel = settings.getPunctuationLevel();
             boolean isCustomValid = (punctLevel == SpeechSynthesis.PUNCT_CUSTOM) && 
                                     (settings.getPunctuationCharacters() != null && !settings.getPunctuationCharacters().trim().isEmpty());
 
-            if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
+            if (text.trim().length() <= 1) {
+            } else if (punctLevel == SpeechSynthesis.PUNCT_SOME) {
                 text = text.replaceAll("[\"()\\[\\]{}\\-«»]", " ");
             } else if (punctLevel == SpeechSynthesis.PUNCT_NONE || punctLevel == SpeechSynthesis.PUNCT_CUSTOM) {
                 
@@ -439,7 +448,20 @@ public class TtsService extends TextToSpeechService {
                                                   Character.isLetterOrDigit(text.codePointBefore(i)) && 
                                                   Character.isLetterOrDigit(text.codePointAt(i + charCount)));
 
-                    boolean isTerminalPunct = (c == '.' || c == '!' || c == '؟' || c == '،' || c == '؛' || c == '?' || c == ':' || c == ',');
+                    boolean isUSSDChar = (c == '*' || c == '#');
+                    boolean isNextToDigit = false;
+                    if (isUSSDChar) {
+                        if (i > 0 && Character.isDigit(text.codePointBefore(i))) {
+                            isNextToDigit = true;
+                        }
+                        if (i + charCount < len && Character.isDigit(text.codePointAt(i + charCount))) {
+                            isNextToDigit = true;
+                        }
+                    }
+
+                    boolean isControlPauseChar = (c == 0x2069);
+
+                    boolean isTerminalPunct = (c == '.' || c == '!' || c == '؟' || c == '؛' || c == '?' || c == ':' || c == '/' || c == ',' || c == '،' || c == '٬');
                     boolean isAtEnd = (i + charCount >= len) || Character.isWhitespace(text.codePointAt(i + charCount));
 
                     boolean isAfterWord = false;
@@ -447,71 +469,14 @@ public class TtsService extends TextToSpeechService {
                         isAfterWord = !Character.isWhitespace(text.codePointBefore(i));
                     }
 
-                    if (isPunctOrSymbol) {
+                    if (isControlPauseChar) {
+                        for (int k = 0; k < charCount; k++) {
+                            sb.append(' ');
+                        }
+                    } else if (isPunctOrSymbol && !(isUSSDChar && isNextToDigit)) {
                         if (isInWordApostrophe) {
                             sb.appendCodePoint(c);
                         } else if (c == '.') {
-                            boolean isBetweenPersian = false;
-                            boolean isBetweenEnglishOrDigits = false;
-                            
-                            if (i > 0 && i + charCount < len) {
-                                int prevCp = text.codePointBefore(i);
-                                int nextCp = text.codePointAt(i + charCount);
-                                
-                                boolean prevIsPersian = (prevCp >= 0x0600 && prevCp <= 0x06FF);
-                                boolean nextIsPersian = (nextCp >= 0x0600 && nextCp <= 0x06FF);
-                                
-                                if (prevIsPersian && nextIsPersian) {
-                                    isBetweenPersian = true;
-                                } else if (Character.isLetterOrDigit(prevCp) && Character.isLetterOrDigit(nextCp)) {
-                                    isBetweenEnglishOrDigits = true;
-                                }
-                            }
-
-                            if (isBetweenPersian) {
-                                for (int k = 0; k < charCount; k++) {
-                                    sb.append(' ');
-                                }
-                            } else if (isBetweenEnglishOrDigits || (isTerminalPunct && isAtEnd && isAfterWord)) {
-                                sb.appendCodePoint(c);
-                            } else {
-                                for (int k = 0; k < charCount; k++) {
-                                    sb.append(' ');
-                                }
-                            }
-                        } else if (c == ':') {
-                            boolean isBetweenDigits = false;
-                            boolean isBetweenEnglishOrLetters = false;
-                            
-                            if (i > 0 && i + charCount < len) {
-                                int prevCp = text.codePointBefore(i);
-                                int nextCp = text.codePointAt(i + charCount);
-                                
-                                if (Character.isDigit(prevCp) && Character.isDigit(nextCp)) {
-                                    isBetweenDigits = true;
-                                } else if (Character.isLetter(prevCp) && Character.isLetter(nextCp)) {
-                                    isBetweenEnglishOrLetters = true;
-                                }
-                            }
-
-                            if (isBetweenDigits || isBetweenEnglishOrLetters) {
-                                if (isCustomValid && customChars.indexOf(':') != -1) {
-                                    sb.append(" \u200C:\u200C ");
-                                } else {
-                                    sb.appendCodePoint(c);
-                                }
-                            } else if (isCustomValid && customChars.indexOf(':') != -1) {
-                                if (isAfterWord) sb.append(" \u200C");
-                                sb.appendCodePoint(c);
-                                sb.append("\u200C ");
-                            } else if (isTerminalPunct && isAtEnd && isAfterWord) {
-                                sb.appendCodePoint(c);
-                            } else {
-                                for (int k = 0; k < charCount; k++) {
-                                    sb.append(' ');
-                                }
-                            }
-                        } else if (c == ',') {
                             boolean isBetweenDigits = false;
                             
                             if (i > 0 && i + charCount < len) {
@@ -524,17 +489,106 @@ public class TtsService extends TextToSpeechService {
                             }
 
                             if (isBetweenDigits) {
-                                if (isCustomValid && customChars.indexOf(',') != -1) {
-                                    sb.append(" \u200C,\u200C ");
-                                } else {
-                                    sb.appendCodePoint(c);
-                                }
-                            } else if (isCustomValid && customChars.indexOf(',') != -1) {
+                                sb.appendCodePoint(c);
+                            } else if (isCustomValid && customChars.indexOf('.') != -1) {
                                 if (isAfterWord) sb.append(" \u200C");
                                 sb.appendCodePoint(c);
                                 sb.append("\u200C ");
-                            } else if (isTerminalPunct && isAtEnd && isAfterWord) {
+                            } else {
+                                for (int k = 0; k < charCount; k++) {
+                                    sb.append(' ');
+                                }
+                            }
+                        } else if (c == ':') {
+                            boolean isBetweenDigits = false;
+                            
+                            if (i > 0 && i + charCount < len) {
+                                int prevCp = text.codePointBefore(i);
+                                int nextCp = text.codePointAt(i + charCount);
+                                
+                                if (Character.isDigit(prevCp) && Character.isDigit(nextCp)) {
+                                    isBetweenDigits = true;
+                                }
+                            }
+
+                            if (isBetweenDigits) {
                                 sb.appendCodePoint(c);
+                            } else if (isCustomValid && customChars.indexOf(':') != -1) {
+                                if (isAfterWord) sb.append(" \u200C");
+                                sb.appendCodePoint(c);
+                                sb.append("\u200C ");
+                            } else {
+                                for (int k = 0; k < charCount; k++) {
+                                    sb.append(' ');
+                                }
+                            }
+                        } else if (c == '/') {
+                            boolean isBetweenDigits = false;
+                            
+                            if (i > 0 && i + charCount < len) {
+                                int prevCp = text.codePointBefore(i);
+                                int nextCp = text.codePointAt(i + charCount);
+                                
+                                if (Character.isDigit(prevCp) && Character.isDigit(nextCp)) {
+                                    isBetweenDigits = true;
+                                }
+                            }
+
+                            if (isBetweenDigits) {
+                                sb.appendCodePoint(c);
+                            } else if (isCustomValid && customChars.indexOf('/') != -1) {
+                                if (isAfterWord) sb.append(" \u200C");
+                                sb.appendCodePoint(c);
+                                sb.append("\u200C ");
+                            } else {
+                                for (int k = 0; k < charCount; k++) {
+                                    sb.append(' ');
+                                }
+                            }
+                        } else if (c == ',' || c == '،' || c == '٬') {
+                            boolean isBetweenDigits = false;
+                            boolean isThousandsSeparator = false;
+                            
+                            if (i > 0 && i + charCount < len) {
+                                int prevCp = text.codePointBefore(i);
+                                int nextCp = text.codePointAt(i + charCount);
+                                
+                                if (Character.isDigit(prevCp) && Character.isDigit(nextCp)) {
+                                    isBetweenDigits = true;
+                                    if (i + charCount + 3 <= len) {
+                                        int next1 = text.codePointAt(i + charCount);
+                                        int next2 = text.codePointAt(text.offsetByCodePoints(i + charCount, 1));
+                                        int next3 = text.codePointAt(text.offsetByCodePoints(i + charCount, 2));
+                                        if (Character.isDigit(next1) && Character.isDigit(next2) && Character.isDigit(next3)) {
+                                            isThousandsSeparator = true;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (isBetweenDigits && isThousandsSeparator) {
+                            } else if (isBetweenDigits && !isThousandsSeparator) {
+                                if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
+                                    for (int k = 0; k < charCount; k++) {
+                                        sb.append(' ');
+                                    }
+                                } else {
+                                    for (int k = 0; k < charCount; k++) {
+                                        sb.append(' ');
+                                    }
+                                }
+                            } else if (isCustomValid && customChars.indexOf(c) != -1) {
+                                if (isAfterWord) sb.append(" \u200C");
+                                sb.appendCodePoint(c);
+                                sb.append("\u200C ");
+                            } else if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
+                                if (isTerminalPunct && isAtEnd && isAfterWord) {
+                                    sb.appendCodePoint(c);
+                                } else {
+                                    for (int k = 0; k < charCount; k++) {
+                                        sb.append(' ');
+                                    }
+                                }
                             } else {
                                 for (int k = 0; k < charCount; k++) {
                                     sb.append(' ');
@@ -544,11 +598,21 @@ public class TtsService extends TextToSpeechService {
                             if (isAfterWord) sb.append(" \u200C");
                             sb.appendCodePoint(c);
                             sb.append("\u200C ");
-                        } else if (isTerminalPunct && isAtEnd && isAfterWord) { 
-                            sb.appendCodePoint(c);
+                        } else if (punctLevel == SpeechSynthesis.PUNCT_NONE) {
+                            if (isTerminalPunct && isAtEnd && isAfterWord) { 
+                                sb.appendCodePoint(c);
+                            } else {
+                                for (int k = 0; k < charCount; k++) {
+                                    sb.append(' ');
+                                }
+                            }
                         } else {
-                            for (int k = 0; k < charCount; k++) {
-                                sb.append(' ');
+                            if (isTerminalPunct && isAtEnd && isAfterWord) {
+                                sb.appendCodePoint(c);
+                            } else {
+                                for (int k = 0; k < charCount; k++) {
+                                    sb.append(' ');
+                                }
                             }
                         }
                     } else {
@@ -618,21 +682,7 @@ public class TtsService extends TextToSpeechService {
         if (text == null || text.isEmpty()) {
             return text;
         }
-        final int len = text.length();
-        StringBuilder out = new StringBuilder(len * 2);
-        boolean prevWasDigit = false;
-        for (int i = 0; i < len; ) {
-            final int c = text.codePointAt(i);
-            final int charCount = Character.charCount(c);
-            final boolean isDigit = Character.isDigit(c);
-            if (isDigit && prevWasDigit) {
-                out.append(' ');
-            }
-            out.appendCodePoint(c);
-            prevWasDigit = isDigit;
-            i += charCount;
-        }
-        return out.toString();
+        return text.replaceAll("(?<=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])(?=[0-9\\u0660-\\u0669\\u06F0-\\u06F9])", " ");
     }
 
     private final SpeechSynthesis.SynthReadyCallback mSynthCallback = new SynthReadyCallback() {
